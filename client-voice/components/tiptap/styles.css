@@ -1,0 +1,103 @@
+.editor {
+    line-height: 1.6;
+  }
+  
+  .editor h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 1.5rem 0 1rem;
+  }
+  
+  .editor h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 1.25rem 0 0.75rem;
+  }
+  
+  .editor p {
+    font-size: .85rem;
+    margin: 0.5rem 0;
+  }
+
+  /* Fix task list to show checklist items horizontally with checkbox and strike-through for complete */
+
+  /* Task list container */
+  .editor li {
+    
+    align-items: center;
+    margin-left: 20;
+    /* padding: 2; */
+    gap: 4;
+    flex-direction: row;
+    display: flex;
+  }
+
+ 
+
+
+  .editor input[type="text"]:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    appearance: none;
+  }
+  
+
+  /* Style the appearance of checkboxes in the editor */
+  .editor input[type="checkbox"] {
+    width: 14;
+    /* appearance: none; */
+    height: 14;
+    accent-color: #9333ea; /* nice purple for checked */
+    margin-right: 0.5em;
+    cursor: pointer;
+    
+    border: 2px solid #d1d5db !important; /* Tailwind gray-300, for unchecked border */
+    border-color: #9333ea !important;
+    /* vertical-align: middle; */
+    border: none;
+  }
+  
+
+  .editor ul[data-type="taskList"] {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+  }
+
+  /* Task item layout: horizontal checkbox + content */
+  .editor li[data-type="taskItem"] {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    /* remove redundant flex-direction and extra display */
+  }
+
+  /* Checkbox wrapper */
+  .editor li[data-type="taskItem"] > label {
+    flex-shrink: 0;
+    margin-top: 0;
+    margin-right: 0.5rem;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Task content */
+  .editor li[data-type="taskItem"] > div {
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+
+  /* No extra margin for paragraph inside checklist */
+  .editor li[data-type="taskItem"] p {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Strikethrough when checked (matches Tiptap's data-done attribute) */
+
+.editor li[data-checked="true"] {
+    text-decoration: line-through;
+    color: #888;
+}
+
