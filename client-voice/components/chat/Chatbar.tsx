@@ -82,7 +82,7 @@ export default function Chatbar({sessionId, sessionSummaries, defaultChatId,sugg
       }
       if(chatInput.trim().length > 0)
         chatConversation()
-    },[chatSession])
+    },[])
     // INSERT_YOUR_CODE
     // Helper function to create a new chat session
 

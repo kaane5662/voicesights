@@ -4,6 +4,7 @@
 // Note Row Component
 
 import { ChatSession, Note } from "@/app/interfaces";
+import Pagination from "@/components/ui/Pagination";
 import { SERVER_URL } from "@/const";
 import { formatRelativeTime } from "@/utils/dates";
 import axios from "axios";
@@ -39,7 +40,7 @@ function ChatRow({ chat }: { chat: ChatSession }) {
     const [selectedFilter, setSelectedFilter] = useState('all');
     const [pageNumber,setPageNumber] = useState(1)
     const [totalPages,setTotalPages] = useState(1)
-    const pageSize = 10
+    const resultsPerPage = 3
     const [sortBy, setSortBy] = useState('date');
     const [selectedSession, setSelectedSession] = useState(null);
     const router = useRouter()
@@ -56,10 +57,15 @@ function ChatRow({ chat }: { chat: ChatSession }) {
           `${SERVER_URL}/chats/`,
           {
             page: pageNumber,
-            page_size: pageSize,
+            page_size: resultsPerPage,
           },
           {
             withCredentials: true,
+            params:{
+              page: pageNumber,
+              page_size: resultsPerPage,
+              search_query:searchQuery
+            }
           }
         );
         if (res.status !== 200) throw new Error("Failed to fetch chats");
@@ -79,7 +85,11 @@ function ChatRow({ chat }: { chat: ChatSession }) {
 
     useEffect(()=>{
       fetchDocs()
-    },[])
+    },[pageNumber,searchQuery])
+
+    useEffect(()=>{
+      setPageNumber(1)
+    },[searchQuery])
   
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
@@ -161,37 +171,7 @@ function ChatRow({ chat }: { chat: ChatSession }) {
           )}
     
             {/* Pagination Controls */}
-            {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-8">
-                <button
-                    className="px-3 py-1 rounded-xl bg-white/10 text-white font-medium text-sm hover:bg-violet-500/20 transition-all disabled:opacity-40"
-                    disabled={pageNumber === 1 || !pageNumber}
-                    onClick={() => setPageNumber((prev) => (prev ? prev - 1 : 1))}
-                >
-                    Previous
-                </button>
-                {[...Array(totalPages)].map((_, i) => (
-                    <button
-                    key={i}
-                    className={`px-3 py-1 rounded-lg font-medium text-sm ${
-                        (pageNumber ?? 1) === i + 1
-                        ? "bg-violet-500/40 text-white"
-                        : "bg-white/10 text-slate-300 hover:bg-violet-700/30"
-                    } transition-all`}
-                    onClick={() => setPageNumber(i + 1)}
-                    >
-                    {i + 1}
-                    </button>
-                ))}
-                <button
-                    className="px-3 py-1 rounded-xl bg-white/10 text-white font-medium text-sm hover:bg-violet-500/20 transition-all disabled:opacity-40"
-                    disabled={pageNumber === totalPages}
-                    onClick={() => setPageNumber((prev) => (prev ? prev + 1 : 2))}
-                >
-                    Next
-                </button>
-                </div>
-            )}
+            <Pagination totalPages={totalPages} currentPage={pageNumber} onPageChange={(p)=>setPageNumber(p)}></Pagination>
         </div>
       </div>
     );

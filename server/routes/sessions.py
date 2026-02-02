@@ -281,6 +281,8 @@ async def get_token(request: Request):
 async def get_sessions(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(10, ge=1, le=100, description="Sessions per page"),
+    search_query: str = Query(None, description="Search query (optional)"),
+    # removed extra query param, as it's redundant and likely a copy-paste error
     request: Request = None,
     user_id: str = None
 ):
@@ -288,12 +290,17 @@ async def get_sessions(
         print('user_id',user_id)
         skip = (page - 1) * page_size
         # total_sessions = Session.objects.count()
+        query = {"owner_id": user_id}
+        if search_query:
+            # We search both title (case insensitive) and (optionally) other fields.
+            query["title__icontains"] = search_query
         sessions_query = (
-            Session.objects(owner_id=user_id).order_by("-created_at")  # most recent first
+            Session.objects(**query)
+            .order_by("-created_at")
             .skip(skip)
             .limit(page_size)
         )
-
+        
         sessions = [s.to_dict() for s in sessions_query]
         total = Session.objects(owner_id=user_id).count()
         total_pages = (total + page_size - 1) // page_size if total > 0 else 1

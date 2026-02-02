@@ -279,9 +279,11 @@ export default function Dashboard() {
         <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden mb-6">
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
             <h2 className="font-semibold text-white">Recent Sessions</h2>
-            <button className="text-sm text-violet-400 hover:text-violet-300 flex items-center gap-1">
+            <Link 
+            href={'/sessions'}
+            className="text-sm text-violet-400 hover:text-violet-300 flex items-center gap-1">
               View all <ChevronRight className="w-4 h-4" />
-            </button>
+            </Link>
           </div>
           <div className="divide-y divide-white/5">
             {recentSessions.map((session) => (
@@ -296,9 +298,11 @@ export default function Dashboard() {
           <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
               <h2 className="font-medium text-white text-sm">Notes</h2>
-              <button className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1">
+              <Link 
+              href={'/docs'}
+              className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1">
                 All <ChevronRight className="w-3 h-3" />
-              </button>
+              </Link>
             </div>
             <div className="p-2 space-y-1">
               {recentNotes.map((note) => (
@@ -311,9 +315,11 @@ export default function Dashboard() {
           <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
               <h2 className="font-medium text-white text-sm">AI Chats</h2>
-              <button className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1">
+              <Link 
+              href={'/chats'}
+              className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1">
                 All <ChevronRight className="w-3 h-3" />
-              </button>
+              </Link>
             </div>
             <div className="p-2 space-y-1">
               {recentChats.map((chat) => (

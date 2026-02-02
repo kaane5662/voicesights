@@ -55,8 +55,11 @@ async def get_all_chats(
     page_size = pagination.page_size or 10
 
     skip = (page - 1) * page_size
-
-    query = ChatSession.objects(owner_id=user_id).only("id", "title", "created_at", 'session_id').order_by("-created_at")
+    search_query = pagination.search_query
+    query_obj = {"owner_id": user_id}
+    if search_query:
+        query_obj["title__icontains"] = search_query
+    query = ChatSession.objects(**query_obj).only("id", "title", "created_at", 'session_id').order_by("-created_at")
     total = query.count()
     docs = query.skip(skip).limit(page_size)
     total_pages = (total + page_size - 1) // page_size if total > 0 else 1

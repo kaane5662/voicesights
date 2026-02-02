@@ -31,9 +31,12 @@ class Profile(Document):
     updated_at = DateTimeField()
     next_renewal=DateTimeField()
     stripe_customer_id=StringField()
-    tokens = IntField(0)
-    limit_tokens = IntField(2)
-    subscription_status=StringField()
+    
+    last_requested = StringField()
+    subscription_status = StringField()
+    # Rate limiting fields
+    rate_limit_remaining = IntField(default=10)  # Example: default limit per period
+    rate_limit_last = DateTimeField()             # Last request time for rate limiting
     class AuthorizationToken(EmbeddedDocument):
         app_id = StringField(required=True)
         permissions = ListField(StringField())

@@ -5,6 +5,7 @@ import { Search, Clock, Calendar, MessageSquare, Sparkles, ChevronRight, Filter,
 import { useRouter } from "next/navigation";
 import { SERVER_URL } from "@/const";
 import axios from "axios";
+import Pagination from "@/components/ui/Pagination";
 
 
 
@@ -96,6 +97,10 @@ export default function SessionsPage() {
     const [creatingSession,setCreatingSession] = useState(false)
     const [sortBy, setSortBy] = useState('date');
     const [selectedSession, setSelectedSession] = useState(null);
+    const [currentPage,setCurrentPage] = useState(1)
+    const [totalPages,setTotalPages] = useState(0)
+    const resultsPerPage=3
+    
     const router = useRouter()
   
     const formatDuration = (seconds:number) => {
@@ -137,14 +142,22 @@ export default function SessionsPage() {
     // Helper function to fetch sessions from the API
     async function fetchSessions() {
       try {
+        // Call paginated endpoint using query params to match FastAPI
         const res = await axios.get(`${SERVER_URL}/sessions`, {
           withCredentials: true,
           headers: {
             'Content-Type': 'application/json'
+          },
+          params: {
+            page: currentPage || 1,
+            page_size: resultsPerPage,
+            search_query:searchQuery
           }
         });
         if (res.status !== 200) throw new Error("Failed to fetch sessions");
         const data = res.data;
+        setCurrentPage(data.pagination.page)
+        setTotalPages(data.pagination.total_pages)
         if (Array.isArray(data.sessions)) {
           setSessions(data.sessions);
         }
@@ -183,7 +196,11 @@ export default function SessionsPage() {
 
     useEffect(()=>{
       fetchSessions()
-    },[])
+    },[currentPage])
+
+    useEffect(()=>{
+      setCurrentPage(1)
+    },[searchQuery])
   
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
@@ -255,17 +272,22 @@ export default function SessionsPage() {
           </header>
   
           {/* Sessions List */}
-          <div className="space-y-4">
-            {filteredSessions.map((session) => (
-              <SessionCard
-                key={session.id}
-                session={session}
-                isSelected={selectedSession === session.id}
-                onSelect={() => setSelectedSession(selectedSession === session.id ? null : session.id)}
-                onToggleStar={() => toggleStar(session.id)}
-              />
-            ))}
-          </div>
+          {filteredSessions.length > 0 &&(
+
+            <div className="space-y-4">
+              {filteredSessions.map((session) => (
+                <SessionCard
+                  key={session.id}
+                  session={session}
+                  isSelected={selectedSession === session.id}
+                  onSelect={() => setSelectedSession(selectedSession === session.id ? null : session.id)}
+                  onToggleStar={() => toggleStar(session.id)}
+                />
+              ))}
+              <Pagination onPageChange={(p)=>setCurrentPage(p)} totalPages={totalPages} currentPage={currentPage}></Pagination>
+
+            </div>
+          )}
   
           {filteredSessions.length === 0 && (
             <div className="text-center py-16">

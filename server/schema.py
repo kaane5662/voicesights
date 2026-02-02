@@ -28,3 +28,4 @@ class Pagination(BaseModel):
     page_size: Optional[int] = Field(10, description="Number of items per page, default is 10.")
     total: Optional[int] = Field(None, description="Total number of items.")
     total_pages: Optional[int] = Field(None, description="Total number of pages.")
+    search_query: Optional[str] = Field(None, description="The search query.")
