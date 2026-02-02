@@ -52,6 +52,9 @@ jobs:
     steps:
       - name: 'Checkout'
         uses: 'actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332' # actions/checkout@v4
+        
+      - name: Echo secret
+        run: echo "My secret: ${{ secrets.SERVICE_ACCOUNT }}"
 
       # Configure Workload Identity Federation and generate an access token.
       #
