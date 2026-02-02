@@ -29,7 +29,10 @@ class Profile(Document):
     bio = StringField()
     created_at = DateTimeField(default=datetime.datetime.utcnow()) 
     updated_at = DateTimeField()
+    next_renewal=DateTimeField()
     stripe_customer_id=StringField()
+    tokens = IntField(0)
+    limit_tokens = IntField(2)
     subscription_status=StringField()
     class AuthorizationToken(EmbeddedDocument):
         app_id = StringField(required=True)

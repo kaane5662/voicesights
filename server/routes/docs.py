@@ -9,6 +9,7 @@ from pymongo import message
 from config.mongo import connect_to_mongo
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.messages import BaseMessage, ChatMessage
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import ChatOpenAI
 from models import ChatSession, Session, SessionDoc
 
@@ -18,6 +19,7 @@ import os
 from helpers.docs import compile_to_tiptap
 from helpers.auth import login_required
 from schema import Pagination
+from helpers.pinecone import delete_docmuents_pinecone, reindex_pinecone
 # from tools import add_google_calendar_events_rest, create_linear_issues, get_google_calendars, get_linear_teams
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
@@ -128,6 +130,79 @@ async def save_doc(session_id: str, doc_id:str, request:Request):
     doc.content_json = data['content_json']
     doc.save()  
     return {'message':"saved successfully"}
+
+@router.delete("/{doc_id}/delete/")
+@login_required
+async def delete_doc(doc_id:str, request:Request, user_id=None):
+    # print(data['content_json'])
+    doc = SessionDoc.objects(owner_id=user_id, id=doc_id).first()
+    if doc:
+        doc.delete()
+        delete_docmuents_pinecone(str(doc.id),'doc',user_id)
+        return {'message': "deleted successfully"}
+    else:
+        return JSONResponse(status_code=404, content={'error': "Not a valid document found"})
+
+@router.post("/{session_id}/{doc_id}/vectorize")
+@login_required
+async def vectorize_doc(session_id: str, doc_id:str, request:Request, user_id=None):
+    data = await request.json()
+    doc = SessionDoc.objects(session_id=session_id, id=doc_id, owner_id=user_id).first()
+    # print(data['content_json'])
+    if not doc:
+        return JSONResponse(status_code=404,content={'error':"Not a valid document found"})
+   
+    
+
+    # content_json: may be list of blocks, may be dict, may be plain text
+    # We'll treat as list of blocks with 'text', or as fallback string.
+    # Use the specific schema for extracting text
+    blocks = doc.content_json
+    # print(blocks)
+    texts = []
+
+    # Traverse and extract all text from this specialized tiptap schema
+    def extract_texts_from_block(block):
+        if isinstance(block, dict):
+            txts = []
+            # Text leaf
+            if block.get('type') == 'text' and 'text' in block:
+                txts.append(block['text'])
+            # Content array (e.g. paragraph, heading, taskItem, etc)
+            if 'content' in block and isinstance(block['content'], list) and 'type' in block and block['type'] != 'heading':
+                for child in block['content']:
+                    txts.extend(extract_texts_from_block(child))
+            # taskItem's paragraph is under 'content'
+            return txts
+        elif isinstance(block, list):
+            txts = []
+            for b in block:
+                txts.extend(extract_texts_from_block(b))
+            return txts
+        return []
+
+    # According to schema, main content is under blocks['content']
+    if isinstance(blocks, dict) and blocks.get('type') == 'doc' and 'content' in blocks:
+        texts = extract_texts_from_block(blocks['content'])
+    elif isinstance(blocks, list):
+        texts = extract_texts_from_block(blocks)
+    else:
+        texts = []
+
+    # Concatenate all texts into one string
+    joined = " ".join(texts)
+    # print('Joined',joined)
+    # Use LangChain RecursiveCharacterTextSplitter to split into ~100 character chunks
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=150,
+        chunk_overlap=20,
+        separators=["\n\n", "\n", ".", "!", "?", " "]
+    )
+    transcript_chunks = [chunk.strip() for chunk in splitter.split_text(joined) if chunk.strip()]
+    print(transcript_chunks)
+    item_type = "doc"
+    reindex_pinecone(str(doc.id), str(session_id),user_id, transcript_chunks, item_type)
+    return {'message':"Reindexed successfully"}
 
 
 

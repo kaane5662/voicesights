@@ -32,22 +32,22 @@ async def get_folder_content(
     
 
     async def get_folders(parent):
-        return list(Folder.objects(parent_id=parent))
+        return list(Folder.objects(parent_id=parent, owner_id=user_id))
 
     async def get_chats(parent):
         if parent is None:
             return []
-        return list(ChatSession.objects(folder_id=parent))
+        return list(ChatSession.objects(folder_id=parent, owner_id=user_id))
 
     async def get_docs(parent):
         if parent is None:
             return []
-        return list(SessionDoc.objects(folder_id=parent))
+        return list(SessionDoc.objects(folder_id=parent, owner_id=user_id))
 
     async def get_sessions(parent):
         if parent is None:
             return []
-        return list(Session.objects(folder_id=parent))
+        return list(Session.objects(folder_id=parent, owner_id=user_id))
 
     folders, chats, docs, sessions = await asyncio.gather(
         get_folders(parent),

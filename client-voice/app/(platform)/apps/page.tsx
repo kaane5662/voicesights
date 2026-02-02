@@ -98,6 +98,42 @@ const availableApps = [
       { id: 'create_docs', name: 'Create documents', description: 'Create new documents in your Drive', required: false },
     ]
   },
+  // INSERT_YOUR_CODE
+  {
+    id: 'slack',
+    name: 'Slack',
+    description: 'Send messages, read channels, and manage your Slack workspace.',
+    icon: '💬',
+    color: 'from-indigo-600 to-blue-500',
+    category: 'Communication',
+    permissions: [
+      {
+        id: 'channels:read',
+        name: 'Read channels',
+        description: 'View basic information about public channels in your workspace.',
+        required: true,
+      },
+      {
+        id: 'chat:write',
+        name: 'Send messages',
+        description: 'Send messages as you into channels and conversations.',
+        required: true,
+      },
+      {
+        id: 'users:read',
+        name: 'View users',
+        description: 'View people in your workspace.',
+        required: false,
+      },
+    // INSERT_YOUR_CODE
+      {
+        id: 'chat:write.public',
+        name: 'Send messages to public channels',
+        description: 'Send messages as you to public channels in your Slack workspace.',
+        required: false,
+      },
+    ]
+  },
   {
     type:"google",
     id: 'google-sheets',
@@ -187,19 +223,7 @@ const availableApps = [
       { id: 'create_content', name: 'Create content', description: 'Add new pages and entries', required: false },
     ]
   },
-  {
-    id: 'slack',
-    name: 'Slack',
-    description: 'Send messages and access channels',
-    icon: '💬',
-    color: 'from-purple-500 to-pink-500',
-    category: 'Communication',
-    permissions: [
-      { id: 'read_messages', name: 'Read messages', description: 'View messages in channels', required: true },
-      { id: 'send_messages', name: 'Send messages', description: 'Post messages to channels', required: false },
-      { id: 'manage_channels', name: 'Manage channels', description: 'Create and archive channels', required: false },
-    ]
-  },
+  
 ];
 
 function AppCard({ app, isConnected, onConnect, onManage }) {
@@ -523,6 +547,29 @@ export default function AppsIntegrations() {
     // eslint-disable-next-line
   }, []);
 
+  // INSERT_YOUR_CODE
+
+  // Filter connected and available apps by search query and category
+  const filteredConnectedApps = connectedApps.filter(app => {
+    const matchesSearch =
+      searchQuery.trim() === '' ||
+      app.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+      app.description.toLowerCase().includes(searchQuery.trim().toLowerCase());
+    const matchesCategory =
+      selectedCategory === 'All' || app.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const filteredAvailableApps = availableToConnect.filter(app => {
+    const matchesSearch =
+      searchQuery.trim() === '' ||
+      app.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+      app.description.toLowerCase().includes(searchQuery.trim().toLowerCase());
+    const matchesCategory =
+      selectedCategory === 'All' || app.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -567,14 +614,14 @@ export default function AppsIntegrations() {
         </div>
 
         {/* Connected Apps */}
-        {connectedApps.length > 0 && (
+        {filteredConnectedApps.length > 0 && (
           <section className="mb-8">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Check className="w-5 h-5 text-emerald-400" />
-              Connected ({connectedApps.length})
+              Connected ({filteredConnectedApps.length})
             </h2>
             <div className="space-y-3">
-              {connectedApps.map((app) => (
+              {filteredConnectedApps.map((app) => (
                 <AppCard
                   key={app.id}
                   app={app}
@@ -590,10 +637,10 @@ export default function AppsIntegrations() {
         <section>
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Plus className="w-5 h-5 text-slate-400" />
-            Available Apps ({availableToConnect.length})
+            Available Apps ({filteredAvailableApps.length})
           </h2>
           <div className="space-y-3">
-            {availableToConnect.map((app) => (
+            {filteredAvailableApps.map((app) => (
               <AppCard
                 key={app.id}
                 app={app}

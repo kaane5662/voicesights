@@ -20,6 +20,7 @@ from config.mongo import connect_to_mongo
 # from server.config.mongo import connect_to_mongo
 from schema import TranscriptPartitionModel
 from helpers.graphiti import add_graphiti_record
+from helpers.pinecone import add_pinecone_data, query_pinecone, query_pinecone_threshold
 load_dotenv()
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
@@ -177,7 +178,18 @@ user_id: str = None
     
     if not session:
         return JSONResponse(content={'error':"Cannot find session"},status_code=404)
-        
+    # Split data.partition into 4 approximately equal documents and add to pinecone vector DB
+
+    partition_list = list(data.partition)
+    n = len(partition_list)
+    k=4
+    if n > 0:
+        chunk_size = max(1, n // k)
+        doc_chunks = [partition_list[i:i+chunk_size] for i in range(0, n, chunk_size)]
+        # Limit to at most k documents
+        doc_chunks = doc_chunks[:k]
+        docs = [' '.join(entry.text for entry in chunk) for chunk in doc_chunks]
+        add_pinecone_data(docs, session_id, user_id)
     # print(data.partition)
     print('Saving transcript')
     # print(session.transcript)
@@ -200,7 +212,7 @@ user_id: str = None
     '''
     )
     
-    asyncio.run(add_graphiti_record(summary.output_text, user_id))
+    await add_graphiti_record(summary.output_text, user_id)
     session.summaries.append(summary.output_text)
     session.save()
 
@@ -278,12 +290,22 @@ async def get_sessions(
         # total_sessions = Session.objects.count()
         sessions_query = (
             Session.objects(owner_id=user_id).order_by("-created_at")  # most recent first
-            # .skip(skip)
-            # .limit(page_size)
+            .skip(skip)
+            .limit(page_size)
         )
 
         sessions = [s.to_dict() for s in sessions_query]
-        return {"sessions":sessions}
+        total = Session.objects(owner_id=user_id).count()
+        total_pages = (total + page_size - 1) // page_size if total > 0 else 1
+        return {
+            "sessions": sessions,
+            "pagination": {
+                "page": page,
+                "page_size": page_size,
+                "total": total,
+                "total_pages": total_pages
+            }
+        }
         
     except Exception as error:
         # print("Error fetching sessions:", error)
@@ -308,7 +330,24 @@ async def get_session(session_id: str):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-    
+@router.post("/ai-search/")
+@login_required
+async def search_transcripts(request:Request,user_id=None):
+    # Placeholder implementation
+    data = await request.json()
+    # print(data)
+    try:
+        results = query_pinecone(data['query'],user_id,7)
+        print('res',data['query'],results)
+        return {'results':results}
+        
+    except Exception as e:
+        return JSONResponse(
+            content={"error": "Failed to fetch session"},
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+  
 
 @router.delete("/{session_id}")
 async def delete_session(session_id: str):

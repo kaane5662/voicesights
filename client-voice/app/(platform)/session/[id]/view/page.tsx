@@ -12,7 +12,7 @@ import LoadingScreen from '@/components/ui/LoadingScreen';
 import NotesSidebar from '@/components/docs/NotesSidebar';
 import Resizeable from '@/components/ui/Resizeable';
 import SelectFolderPopup from '@/components/popups/SelectFolder';
-import { Session } from 'inspector/promises';
+// import { Session } from 'inspector/promises';
 import SessionRecord from '@/components/sessions/SessionRecord';
 
 
@@ -228,22 +228,23 @@ export default function TranscriptDetail() {
         {activeSidebar === 'notes' && (
           <Resizeable 
           minWidth={400} maxWidth={800} defaultWidth={400}
-          className="border-l-4 border-white/10 transition-colors duration-150 hover:border-white/20">
+          className="border-l-2 border-white/10 transition-colors duration-150 hover:border-white/20">
             <NotesSidebar 
-
+            
             docSuggestions={session?.doc_suggestions || []}
               defaultNoteId = {noteId}
               sessionSummaries={session?.summaries || []} 
               sessionId={session.id}
-              onClose={() => {}} // You can wire this to feed up to parent if wanted
+              onClose={() => setActiveSidebar('')} // You can wire this to feed up to parent if wanted
             />
           </Resizeable>
         )}
         {activeSidebar === 'chat' && (
           <Resizeable 
           minWidth={300} maxWidth={500} defaultWidth={400}
-          className="border-l-4 border-white/10 transition-colors duration-150 hover:cursor-ew-resize hover:border-white/20">
+          className="border-l-2 border-white/10 transition-colors duration-150 hover:cursor-ew-resize hover:border-white/20">
             <Chatbar 
+            
             suggestions={session.chat_suggestions || []}
             defaultChatId={chatId}
             sessionSummaries={session?.summaries || []} sessionId={session.id}/>

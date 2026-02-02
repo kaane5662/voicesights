@@ -7,6 +7,7 @@ import { SERVER_URL } from "@/const";
 import axios from "axios";
 
 
+
 const mockSessions = [
     {
       id: 1,
@@ -227,6 +228,7 @@ export default function SessionsPage() {
                   placeholder="Search transcripts, topics, or tags..."
                   className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-violet-500/50 transition-all"
                 />
+                
               </div>
               <div className="flex gap-2">
                 <select

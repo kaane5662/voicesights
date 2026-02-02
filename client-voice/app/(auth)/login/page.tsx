@@ -4,6 +4,7 @@ import { Mic, Mail, Lock, Eye, EyeOff, ArrowRight, Chrome, Github, Loader2, Aler
 import axios from 'axios';
 import { SERVER_URL } from '@/const';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 // ============================================
 // Types
@@ -291,9 +292,11 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-slate-500 mt-6">
             Don't have an account?{' '}
-            <button className="text-violet-400 hover:text-violet-300 font-medium transition-colors">
+            <Link
+            href={'/signup'}
+            className="text-violet-400 hover:text-violet-300 font-medium transition-colors">
               Sign up
-            </button>
+            </Link>
           </p>
         </div>
       </div>

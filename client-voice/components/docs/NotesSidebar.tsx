@@ -124,7 +124,10 @@ export default function NotesSidebar({
       { id: '2', title: 'Action Items', content: '- [ ] Start mobile redesign\n- [ ] Hire frontend devs\n- [ ] Plan API v2 release', created_at: '5 min ago' },
       { id: '3', title: 'Key Decisions', content: '1. Prioritize mobile UX\n2. Delay analytics to Q2\n3. Simplify auth flow', created_at: '10 min ago' },
     ]);
-    const [activeNote, setActiveNote] = useState<Note>(notes[0]);
+    const [activeNote, setActiveNote] = useState<Note>();
+     // Cooldown ref to prevent excessive revectorization
+    const revectorizeCooldownRef = useRef<NodeJS.Timeout | null>(null);
+    const [selectedNoteId,setSelectedNoteId] = useState('-1')
     const [creatingNote,setCreatingNote] = useState(false)
     const [aiGenerate,setAiGenerate] = useState(false)
     const timerRef = useRef(0)
@@ -136,6 +139,36 @@ export default function NotesSidebar({
         //   TaskList,
         //   TaskItem.configure({ nested: false }),],
         // content: '<p>Hello World! 🌎️</p>',
+        onUpdate: ()=>{
+        // INSERT_YOUR_CODE
+
+        // Function to perform revectorization, called after cooldown
+        const revectorizeDoc = async () => {
+          if (!activeNote?.id) return;
+          try {
+            const content_json = editor?.getJSON();
+            await fetch(`${SERVER_URL}/docs/${sessionId}/${activeNote.id}/vectorize`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({ content_json }),
+              credentials: "include"
+            });
+          } catch (err) {
+            console.error("Error revectorizing note:", err);
+          }
+        };
+
+        // On editor update, set cooldown timer
+        if (revectorizeCooldownRef.current) {
+          clearTimeout(revectorizeCooldownRef.current);
+        }
+        revectorizeCooldownRef.current = setTimeout(() => {
+          revectorizeDoc();
+        }, 5000);
+
+        },
         extensions: [
             StarterKit.configure({
                 heading: false,   // IMPORTANT: disable built-in heading
@@ -191,6 +224,26 @@ export default function NotesSidebar({
         console.error(`Error fetching note ${id}:`, err);
         return null;
     }
+    }
+
+    // INSERT_YOUR_CODE
+    // Delete note by ID
+    async function deleteNoteById(id: string) {
+      try {
+        if (!id) return false;
+        const res = await axios.delete(`${SERVER_URL}/docs/${id}/delete/`, {
+          // data: {}, // some backends require this for DELETE with JSON body
+          withCredentials: true,
+        });
+        
+        setNotes(prevNotes => prevNotes.filter(note => note.id !== id));
+        if (activeNote && activeNote.id === id) setActiveNote(null);
+        // return true;
+        
+      } catch (err) {
+        console.error("Error deleting note:", err);
+        return false;
+      }
     }
 
     async function createNote() {
@@ -255,6 +308,12 @@ export default function NotesSidebar({
         title: 'Untitled Note',
         created_at: (new Date()).toISOString()
       };
+      
+      // INSERT_YOUR_CODE
+      if (editor && editor.commands) {
+        editor.commands.setContent('');
+        editor.commands.focus();
+      }
       setNotes([newNote, ...notes]);
       setActiveNote(newNote);
     };
@@ -300,8 +359,8 @@ export default function NotesSidebar({
             <button
               key={k}
               onClick={() => fetchNoteById(note.id as any)}
-              className={`w-full flex justify-between relative text-left p-2 rounded-lg transition-all ${
-                activeNote.id === note.id
+              className={`w-full group flex justify-between relative text-left p-2 rounded-lg transition-all ${
+                activeNote?.id === note.id
                   ? 'bg-violet-500/20 border border-violet-500/30'
                   : 'hover:bg-white/5'
               }`}
@@ -312,8 +371,21 @@ export default function NotesSidebar({
                 <p className="text-xs text-slate-500">{formatRelativeTime(note.created_at)}</p>
               </div>
               <div className="flex gap-2">
+      
+                
                 <button
-                  onClick={() => setOpenFolderExplorer(true)}
+                  className="p-1 rounded hover:bg-rose-800/90 transition opacity-0 group-hover:opacity-100"
+                  title="Delete note"
+                  onClick={e => {
+                    e.stopPropagation();
+                    deleteNoteById(note.id as any);
+                  }}
+                >
+                  <X size={12} className="text-rose-300" />
+                </button>
+                
+                <button
+                  onClick={() =>{ setOpenFolderExplorer(true) ;setSelectedNoteId(activeNote?.id)}}
                   className="p-1 rounded  hover:bg-slate-800 transition"
                   title="Move to folder"
                 >
@@ -324,7 +396,7 @@ export default function NotesSidebar({
               {openFolderExplorer &&(
                 <SelectFolderPopup
                 selectedResource={{
-                    resourceId: activeNote.id as string,
+                    resourceId: selectedNoteId as string,
                     resourceType:'doc'
                 }}
                 onClose={()=>setOpenFolderExplorer(false)}
@@ -334,65 +406,72 @@ export default function NotesSidebar({
             </button>
           ))}
         </div>
-        
-        <div
-          className="p-4 mt-auto"
-          tabIndex={0}
-          onKeyDown={e => {
-            // Toggle AI Generate on Ctrl+K or Cmd+K
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-              e.preventDefault();
-              setAiGenerate(prev => !prev);
-            }
-          }}
-        >
-            {aiGenerate &&(
-                <AIGenerate sessionSummaries={sessionSummaries} suggestions={docSuggestions} onClose={()=>setAiGenerate(false)} editor={editor}></AIGenerate>
-            )}
-            <Menubar savingNote={savingNote} aiToggled={aiGenerate} onToggleAi ={()=>setAiGenerate(!aiGenerate)} editor={editor}></Menubar>
-            <div className=" h-[400px] overflow-y-scroll">
-
-                
-                  <EditorContent
-                    className="editor"
-                    editor={editor}
-                    onFocus={() => {
-                      // Keep track of timerRef in parent component state or a useRef
-                      // We'll assume timerRef is defined: const timerRef = useRef<NodeJS.Timeout | null>(null);
-                      if (timerRef.current) {
-                        clearTimeout(timerRef.current);
-                        timerRef.current = null;
-                      }
-                    }}
-                    // Save on "stop typing" (debounce), NOT on blur
-                    onKeyUp={e => {
-                      if (timerRef.current) {
-                        clearTimeout(timerRef.current);
-                        timerRef.current = null;
-                      }
-                      timerRef.current = window.setTimeout(async () => {
-                        if (editor && activeNote) {
-                          await saveNote();
-                        }
-                      }, 300);
-                    }}
-                    onBlur={e => {
-                      if (timerRef.current) {
-                        clearTimeout(timerRef.current);
-                        timerRef.current = null;
-                      }
-                      timerRef.current = window.setTimeout(async () => {
-                        if (editor && activeNote) {
-                          await saveNote();
-                        }
-                      }, 300);
-                    }}
-                  />
-                
-            </div>
-        </div>
-  
         {/* Editor Toolbar */}
+        {activeNote &&(
+
+          <div
+            className="p-4 mt-auto"
+            tabIndex={0}
+            onKeyDown={e => {
+              // Toggle AI Generate on Ctrl+K or Cmd+K
+              if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                setAiGenerate(prev => !prev);
+              }
+            }}
+          >
+              {aiGenerate &&(
+                
+                <AIGenerate sessionSummaries={sessionSummaries} suggestions={docSuggestions} onClose={()=>setAiGenerate(false)} editor={editor}></AIGenerate>
+                
+              )}
+              <div className="w-full self-center flex items-center justify-center">
+                <Menubar savingNote={savingNote} aiToggled={aiGenerate} onToggleAi ={()=>setAiGenerate(!aiGenerate)} editor={editor}></Menubar>
+              </div>
+              <div className=" h-[400px] overflow-y-scroll">
+
+                  
+                    <EditorContent
+                      className="editor"
+                      editor={editor}
+                      onFocus={() => {
+                        // Keep track of timerRef in parent component state or a useRef
+                        // We'll assume timerRef is defined: const timerRef = useRef<NodeJS.Timeout | null>(null);
+                        if (timerRef.current) {
+                          clearTimeout(timerRef.current);
+                          timerRef.current = null;
+                        }
+                      }}
+                      // Save on "stop typing" (debounce), NOT on blur
+                      onKeyUp={e => {
+                        if (timerRef.current) {
+                          clearTimeout(timerRef.current);
+                          timerRef.current = null;
+                        }
+                        timerRef.current = window.setTimeout(async () => {
+                          if (editor && activeNote) {
+                            await saveNote();
+                          }
+                        }, 300);
+                      }}
+                      onBlur={e => {
+                        if (timerRef.current) {
+                          clearTimeout(timerRef.current);
+                          timerRef.current = null;
+                        }
+                        timerRef.current = window.setTimeout(async () => {
+                          if (editor && activeNote) {
+                            await saveNote();
+                          }
+                        }, 300);
+                      }}
+                    />
+                  
+              </div>
+          </div>
+        )}
+  
+        
       </div>
     );
   }

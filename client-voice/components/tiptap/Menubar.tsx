@@ -161,7 +161,7 @@ const Menubar: React.FC<MenubarProps> = ({ editor, onToggleAi, aiToggled, saving
         type="button"
       >
         <Sparkles className="w-4 h-4" />
-        <p className="text-xs">Generate</p>
+      
       </button>
     
     {/* Saving spinner or icon */}

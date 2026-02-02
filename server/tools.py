@@ -473,6 +473,106 @@ def append_rows_to_google_sheet(input: AppendRowsInput, config: RunnableConfig) 
 from langchain.tools import tool
 from helpers.graphiti import query_graphiti_by_text
 
+
+
+        # INSERT_YOUR_CODE
+
+
+
+SLACK_API_BASE = "https://slack.com/api"
+
+@tool('slack_list_channels', return_direct=True)
+def slack_list_channels(config: RunnableConfig) -> str:
+    """
+    List all public Slack channels for the team/workspace associated with the user's connected Slack account.
+    Requires channels:read permission. Uses the user's stored Slack app OAuth token.
+    Args:
+        config: RunnableConfig containing caller's user_id and apps.
+    Returns:
+        A formatted string listing channel names and IDs, or an error message.
+    """
+    user_id = config["configurable"]["user_id"]
+    profile = Profile.objects(id=user_id).first()
+    if not profile:
+        return "User profile not found."
+    slack_app = next((app for app in profile.apps if app.app_id == 'slack'), None)
+    if not slack_app:
+        return "Slack not connected for this user."
+    try:
+        r_token = decode_jwt(slack_app.refresh_token)
+    except Exception as exc:
+        return f"Error decoding Slack token: {exc}"
+
+    access_token = r_token['token'] if isinstance(r_token, dict) else r_token
+
+    url = f"{SLACK_API_BASE}/conversations.list"
+    headers = {
+        "Authorization": f"Bearer {access_token}"
+    }
+    params = {
+        "exclude_archived": "true",
+        "types": "public_channel"
+    }
+    try:
+        resp = requests.get(url, headers=headers, params=params, timeout=15)
+        data = resp.json()
+        if data.get("ok"):
+            channels = data.get("channels", [])
+            if not channels:
+                return "No public channels found."
+            result = "Slack Channels:\n"
+            for chan in channels:
+                result += f"- {chan.get('name')} (ID: {chan.get('id')})\n"
+            return result
+        else:
+            return f"Slack API error: {data.get('error')}"
+    except Exception as e:
+        return f"Failed to list channels: {e}"
+
+@tool('slack_post_message', return_direct=True)
+def slack_post_message(channel: str, message: str, config: RunnableConfig) -> str:
+    """
+    Post a message to a specified Slack channel using the user's connected Slack account.
+    Args:
+        channel: Channel ID or name (recommend using channel ID from slack_list_channels).
+        message: The message text to send.
+        config: RunnableConfig containing caller's user_id and apps.
+    Returns:
+        API response message, or error.
+    """
+    user_id = config["configurable"]["user_id"]
+    profile = Profile.objects(id=user_id).first()
+    if not profile:
+        return "User profile not found."
+    slack_app = next((app for app in profile.apps if app.app_id == 'slack'), None)
+    if not slack_app:
+        return "Slack not connected for this user."
+    try:
+        r_token = decode_jwt(slack_app.refresh_token)
+    except Exception as exc:
+        return f"Error decoding Slack token: {exc}"
+
+    access_token = r_token['token'] if isinstance(r_token, dict) else r_token
+
+    url = f"{SLACK_API_BASE}/chat.postMessage"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "channel": channel,
+        "text": message
+    }
+    try:
+        resp = requests.post(url, headers=headers, json=data, timeout=15)
+        resp_json = resp.json()
+        if resp_json.get("ok"):
+            return f"Message posted to {channel}."
+        else:
+            return f"Slack API error: {resp_json.get('error')}"
+    except Exception as e:
+        return f"Failed to post message: {e}"
+
 @tool('query_graphiti_tool')
 async def query_graphiti_tool(query: str) -> str:
     """Use Graphiti vector/hybrid search to perform semantic and keyword queries over transcripts and knowledge base.
@@ -484,4 +584,3 @@ async def query_graphiti_tool(query: str) -> str:
         return result.strip() or "No matching facts found in Graphiti."
     except Exception as e:
         return f"Graphiti query failed: {e}"
-

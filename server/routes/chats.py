@@ -13,7 +13,7 @@ from langchain_core.messages import BaseMessage, ChatMessage
 from langchain_openai import ChatOpenAI
 from models import ChatSession, Session
 from schema import Pagination
-from tools import append_rows_to_google_sheet, get_google_calendars,get_linear_teams,create_linear_issues,add_google_calendar_events_rest, query_graphiti_tool
+from tools import append_rows_to_google_sheet, get_google_calendars,get_linear_teams,create_linear_issues,add_google_calendar_events_rest, query_graphiti_tool, slack_list_channels, slack_post_message
 
 from langchain.agents import create_agent
 import os
@@ -165,7 +165,7 @@ async def create_conversation_with_tools(chat_id: str, body: InputText, request:
         )
         agent = create_agent(
             model=model,
-            tools = [get_google_calendars,get_linear_teams,create_linear_issues,add_google_calendar_events_rest, append_rows_to_google_sheet, query_graphiti_tool],
+            tools = [get_google_calendars,get_linear_teams,create_linear_issues,add_google_calendar_events_rest, append_rows_to_google_sheet, query_graphiti_tool, slack_list_channels, slack_post_message],
             
             # tools=body.tools or []
         )

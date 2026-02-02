@@ -270,6 +270,85 @@ def linear_callback(request: Request):
 # 3️⃣ Test: Create an Issue
 
 
+# INSERT_YOUR_CODE
+
+# --- Slack OAuth integration ---
+
+SLACK_CLIENT_ID = os.environ.get("SLACK_CLIENT_ID")
+SLACK_CLIENT_SECRET = os.environ.get("SLACK_CLIENT_SECRET")
+SLACK_REDIRECT_URI = os.environ.get("SLACK_REDIRECT_URI")
+SLACK_SCOPES = ["channels:read", "chat:write", "users:read"]  # Default, can be overridden by user request
+
+@router.post("/slack")
+@login_required
+async def slack_auth(input: TokenInput, request: Request = None, user_id: str = None):
+    """
+    Begins Slack OAuth.
+    """
+    if input.app_id != "slack":
+        return JSONResponse({"error": "Not found"}, status_code=404)
+
+    if input.action == "disconnect":
+        return JSONResponse(content={'message': "Disconnecting"})
+    
+    scopes = ",".join(input.permissions or SLACK_SCOPES)
+    params = {
+        "client_id": SLACK_CLIENT_ID,
+        "scope": scopes,
+        "redirect_uri": SLACK_REDIRECT_URI,
+        "state": user_id,
+        "user_scope": ""  # Optional: can be populated for user token scopes
+    }
+    url = "https://slack.com/oauth/v2/authorize?" + urlencode(params)
+    return {"url": url}
+
+@router.get("/slack/callback")
+def slack_callback(request: Request):
+    code = request.query_params.get("code")
+    state = request.query_params.get("state")
+    if not code or not state:
+        return JSONResponse({"error": "invalid slack callback"}, status_code=400)
+    
+    # Exchange code for access token
+    token_resp = requests.post(
+        "https://slack.com/api/oauth.v2.access",
+        data={
+            "client_id": SLACK_CLIENT_ID,
+            "client_secret": SLACK_CLIENT_SECRET,
+            "code": code,
+            "redirect_uri": SLACK_REDIRECT_URI
+        },
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    ).json()
+    print("Slack token_resp", token_resp)
+    if not token_resp.get("ok"):
+        return JSONResponse({"error": "Slack OAuth error", "details": token_resp}, status_code=400)
+    # Slack may not have a refresh_token; store access_token
+    access_token = token_resp.get("access_token")
+    scope = token_resp.get("scope", "")
+    team = token_resp.get("team", {})
+    team_id = team.get("id") if isinstance(team, dict) else None
+
+    encrypted_token = encode_jwt({'token': access_token})
+    profile = Profile.objects(id=state).first()
+    slack_index = next((i for i, app in enumerate(profile.apps) if app.app_id == "slack"), -1)
+    print("slack_index", slack_index)
+    if slack_index != -1:
+        profile.apps[slack_index].refresh_token = encrypted_token
+        profile.apps[slack_index].permissions = scope.split(",")
+    else:
+        new_token = Profile.AuthorizationToken(
+            refresh_token=encrypted_token,
+            app_id='slack',
+            permissions=scope.split(",")
+        )
+        if profile.apps:
+            profile.apps.append(new_token)
+        else:
+            profile.apps = [new_token]
+    profile.save()
+    return RedirectResponse("http://localhost:3000/apps")
+
 
 
 

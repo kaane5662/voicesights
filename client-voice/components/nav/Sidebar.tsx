@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { LayoutDashboard, Mic, AppWindow, Settings, LogOut, ChevronLeft, ChevronRight, Bell, Search, Moon, HelpCircle, Rocket, FileText, Sparkles, Edit, Folder, Globe } from 'lucide-react';
 import Link from 'next/link';
 import UpgradePopup from '../popups/SubscriptionPopup';
+import { SearchContentDropdown } from '../popups/SearchContent';
 
 // ============================================
 // Types
@@ -259,6 +260,7 @@ function UserProfile({ user, collapsed, onLogout }: UserProfileProps) {
 export default function Sidebar({  }: SidebarProps) {
   const [collapsed,setCollapsed] = useState(false)
   const [upgradeOpen,setUpgradeOpen] = useState(false)
+  const [semanticSearch,setSemanticSearch] = useState(false)
   return (
     <aside className={`h-screen flex flex-col bg-slate-900/50 border-r border-white/10 transition-all duration-300 ${
       collapsed ? 'w-20' : 'w-64'
@@ -266,6 +268,9 @@ export default function Sidebar({  }: SidebarProps) {
 
       
         <UpgradePopup isOpen={upgradeOpen} onClose={()=>setUpgradeOpen(false)}/>
+        {semanticSearch &&(
+          <SearchContentDropdown onClose={()=>setSemanticSearch(false)}/>
+        )}
      
       {/* Logo */}
       <div className={`p-4 border-b border-white/10 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
@@ -342,17 +347,12 @@ export default function Sidebar({  }: SidebarProps) {
             )}
           </div>
         ))}
+        <NavItemButton onClick={()=>setSemanticSearch(true)} item={{icon:Sparkles,label:"Search", id:'semantic-search', href:''}}/>
 
-        <button
-        onClick={()=>setUpgradeOpen(true)} 
-        className="w-full flex items-center gap-3 mt-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-green-600 text-white font-medium text-sm hover:opacity-90 transition-all shadow-lg shadow-emerald-500/25">
-          <Rocket className="w-4 h-4" />
-          Upgrade
-        </button>
       </nav>
 
       {/* Bottom Actions */}
-      <div className={`p-2 border-t border-white/10 ${collapsed ? 'flex flex-col items-center gap-2' : 'space-y-1'}`}>
+      {/* <div className={`p-2 border-t border-white/10 ${collapsed ? 'flex flex-col items-center gap-2' : 'space-y-1'}`}>
         <button className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-all ${
           collapsed ? 'justify-center w-full' : 'w-full'
         }`}>
@@ -365,7 +365,7 @@ export default function Sidebar({  }: SidebarProps) {
             <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500" />
           )}
         </button>
-      </div>
+      </div> */}
 
       {/* User Profile */}
       <div className="p-3 border-t border-white/10">
