@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 
+import os
+
 app = FastAPI()
 
 app.add_middleware(
@@ -23,8 +25,16 @@ app.include_router(stripe.router)
 app.include_router(webhooks.router)
 app.include_router(folders.router)
 
-
 @app.get("/")
 async def read_root():
     return {"message": "Hello, World!"}
+
+if __name__ == "__main__":
+    import uvicorn
+    env = os.environ.get("ENV", "dev")
+    # If ENV=prod, bind to 0.0.0.0; else default to development mode (localhost)
+    if env.lower() == "prod":
+        uvicorn.run("app:app", host="0.0.0.0", port=8000)
+    else:
+        uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
 
