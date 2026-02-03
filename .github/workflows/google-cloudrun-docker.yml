@@ -44,6 +44,7 @@ env:
 jobs:
   deploy:
     runs-on: 'ubuntu-latest'
+    environment: 'github-cloudrun'
 
     permissions:
       contents: 'read'
@@ -52,6 +53,10 @@ jobs:
     steps:
       - name: 'Checkout'
         uses: 'actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332' # actions/checkout@v4
+        
+      - name: Echo secret
+        run: |-
+          echo "My secret: ${{ secrets.SERVICE_ACCOUNT }}"
 
       # Configure Workload Identity Federation and generate an access token.
       #
@@ -76,7 +81,7 @@ jobs:
 
       - name: 'Build and Push Container'
         run: |-
-          DOCKER_TAG="$${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }}"
+          DOCKER_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }}"
           docker build --tag "${DOCKER_TAG}" ./server
           docker push "${DOCKER_TAG}"
       - name: 'Deploy to Cloud Run'
