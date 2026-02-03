@@ -115,18 +115,18 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
-    const response = await api.loginWithGoogle();
-    if (response.success && response.data) {
-      console.log('Redirect to:', response.data.redirectUrl);
-      // window.location.href = response.data.redirectUrl;
-    }
+    // const response = await api.loginWithGoogle();
+    // if (response.success && response.data) {
+    //   console.log('Redirect to:', response.data.redirectUrl);
+    //   // window.location.href = response.data.redirectUrl;
+    // }
   };
 
   const handleGithubLogin = async () => {
-    const response = await api.loginWithGithub();
-    if (response.success && response.data) {
-      console.log('Redirect to:', response.data.redirectUrl);
-    }
+    // const response = await api.loginWithGithub();
+    // if (response.success && response.data) {
+    //   console.log('Redirect to:', response.data.redirectUrl);
+    // }
   };
 
   const handleForgotPassword = async () => {

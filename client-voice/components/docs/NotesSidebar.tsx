@@ -119,11 +119,7 @@ export default function NotesSidebar({
   sessionId: string;
   defaultNoteId?:string;
 }) {
-    const [notes, setNotes] = useState<Note[]>([
-      { id: '1', title: 'Meeting Notes', content: '# Product Roadmap\n\n- Mobile redesign is priority\n- API v2 launch end of Feb\n- Need 2 more frontend devs', created_at: 'Just now' },
-      { id: '2', title: 'Action Items', content: '- [ ] Start mobile redesign\n- [ ] Hire frontend devs\n- [ ] Plan API v2 release', created_at: '5 min ago' },
-      { id: '3', title: 'Key Decisions', content: '1. Prioritize mobile UX\n2. Delay analytics to Q2\n3. Simplify auth flow', created_at: '10 min ago' },
-    ]);
+    const [notes, setNotes] = useState<Note[]>([]);
     const [activeNote, setActiveNote] = useState<Note>();
      // Cooldown ref to prevent excessive revectorization
     const revectorizeCooldownRef = useRef<NodeJS.Timeout | null>(null);
@@ -422,7 +418,9 @@ export default function NotesSidebar({
           >
               {aiGenerate &&(
                 
-                <AIGenerate sessionSummaries={sessionSummaries} suggestions={docSuggestions} onClose={()=>setAiGenerate(false)} editor={editor}></AIGenerate>
+                <AIGenerate
+                
+                 sessionSummaries={sessionSummaries} suggestions={docSuggestions} onClose={()=>setAiGenerate(false)} editor={editor}></AIGenerate>
                 
               )}
               <div className="w-full self-center flex items-center justify-center">

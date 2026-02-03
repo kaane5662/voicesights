@@ -178,7 +178,7 @@ export default function VoiceChatUI() {
       dcRef.current = dc
       pcRef.current = pc
       setIsConnected(true)
-    }catch(err:typeof Error){
+    }catch(err:any){
       console.log(err.message)
     }finally{
       setLoading(false)

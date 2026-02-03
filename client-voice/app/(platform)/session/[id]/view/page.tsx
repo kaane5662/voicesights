@@ -198,7 +198,7 @@ export default function TranscriptDetail() {
           </div>
         </header>
 
-        <div ref={transcriptScrollRef} className="flex-1 overflow-y-auto p-4">
+        <div ref={transcriptScrollRef as any} className="flex-1 overflow-y-auto p-4">
           <div className="w-full mx-auto space-y-1">
             {transcript.map((entry,id) => (
               <TranscriptEntry

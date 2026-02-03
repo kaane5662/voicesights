@@ -86,7 +86,7 @@ function ChatListItem({ chat, onSelect, onDelete, sessionId }) {
         
         <div className="absolute right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
-            onClick={()=>setOpenFolderExplorer(true)}
+            // onClick={()=>setOpenFolderExplorer(true)}
             className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-slate-100 transition-all"
           >
             <Folder className="w-4 h-4" />
@@ -223,6 +223,7 @@ export function ChatBrowse({ onClose, onSelectChat, onNewChat, sessionId }) {
                   <p className="px-3 py-2 text-xs font-medium text-slate-500 uppercase tracking-wider">Recent</p>
                   {recentMessages.map((chat) => (
                     <ChatListItem
+                      sessionId={sessionId}
                       key={chat.id}
                       onSelect={()=>onSelectChat(chat)}
                       chat={chat}
@@ -238,6 +239,7 @@ export function ChatBrowse({ onClose, onSelectChat, onNewChat, sessionId }) {
                   {otherMessages.map((chat) => (
                     <ChatListItem
                       key={chat.id}
+                      sessionId={sessionId}
                       chat={chat}
                       onSelect={()=>onSelectChat(chat)}
                       onDelete={handleDelete}

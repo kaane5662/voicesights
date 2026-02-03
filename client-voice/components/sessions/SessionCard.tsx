@@ -6,7 +6,7 @@ import { Session } from '@/app/interfaces';
 // ============================================
 // Session Card Component
 // ============================================
-export default function SessionCard({ session, isSelected, onSelect, onToggleStar }:{session:Session}) {
+export default function SessionCard({ session, isSelected}:{session:Session, isSelected:boolean}) {
   const router = useRouter()
   const formatDuration = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
@@ -77,7 +77,7 @@ export default function SessionCard({ session, isSelected, onSelect, onToggleSta
 
             <div className="flex items-center gap-2">
               <button
-                onClick={(e) => { e.stopPropagation(); onToggleStar(); }}
+                // onClick={(e) => { e.stopPropagation(); onToggleStar(); }}
                 className={`p-2 rounded-lg transition-all ${
                   session.starred
                     ? 'text-amber-400 bg-amber-500/20'

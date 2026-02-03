@@ -7,14 +7,14 @@ import { createPortal } from "react-dom"
 
 type AIGenerateProps = {
   editor: Editor
-  sessionId: string;
-  docId: string;
+  // sessionId: string;
+  // docId: string;
   sessionSummaries: string[];
   suggestions:Record<string,string>[]
   onClose:any;
 }
 
-const AIGenerate: React.FC<AIGenerateProps> = ({onClose, editor, docId, sessionSummaries,suggestions }) => {
+const AIGenerate: React.FC<AIGenerateProps> = ({onClose, editor, sessionSummaries,suggestions }) => {
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [input, setInput] = React.useState<string>("") // state for prompt

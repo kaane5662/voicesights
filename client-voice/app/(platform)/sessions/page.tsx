@@ -174,21 +174,21 @@ export default function SessionsPage() {
     };
   
     const filteredSessions = sessions
-      .filter(s => {
-        if (selectedFilter === 'starred') return s.starred;
-        if (selectedFilter !== 'all') return s.tags.includes(selectedFilter);
-        return true;
-      })
-      .filter(s => 
-        s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.ai_overview.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.tags.some(t => t.includes(searchQuery.toLowerCase()))
-      )
-      .sort((a, b) => {
-        if (sortBy === 'date') return new Date(b.date) - new Date(a.date);
-        if (sortBy === 'duration') return b.duration - a.duration;
-        return 0;
-      });
+      // .filter(s => {
+      //   if (selectedFilter === 'starred') return s.starred;
+      //   if (selectedFilter !== 'all') return s.tags.includes(selectedFilter);
+      //   return true;
+      // })
+      // .filter(s => 
+      //   s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      //   s.ai_overview.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      //   s.tags.some(t => t.includes(searchQuery.toLowerCase()))
+      // )
+      // .sort((a, b) => {
+      //   if (sortBy === 'date') return new Date(b.date) - new Date(a.date);
+      //   if (sortBy === 'duration') return b.duration - a.duration;
+      //   return 0;
+      // });
   
     const allTags = [...new Set(sessions.flatMap(s => s.tags))];
     const totalDuration = sessions.reduce((acc, s) => acc + s.duration, 0);
@@ -280,8 +280,8 @@ export default function SessionsPage() {
                   key={session.id}
                   session={session}
                   isSelected={selectedSession === session.id}
-                  onSelect={() => setSelectedSession(selectedSession === session.id ? null : session.id)}
-                  onToggleStar={() => toggleStar(session.id)}
+                  // onSelect={() => setSelectedSession(selectedSession === session.id ? null : session.id)}
+                  // onToggleStar={() => toggleStar(session.id)}
                 />
               ))}
               <Pagination onPageChange={(p)=>setCurrentPage(p)} totalPages={totalPages} currentPage={currentPage}></Pagination>

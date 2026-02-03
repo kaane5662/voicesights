@@ -370,7 +370,7 @@ function ConnectModal({ app, onClose, onConnect }) {
   );
 }
 
-function ManageModal({ app, connections, onClose, onDisconnect, onUpdatePermissions }:{app: typeof availableApps[0] }) {
+function ManageModal({ app, connections, onClose, onDisconnect, onUpdatePermissions }: any) {
   console.log(connections)
   const [permissions, setPermissions] = useState<Record<string, Record<string, boolean>>>(connections);
 
@@ -467,9 +467,9 @@ export default function AppsIntegrations() {
     // eslint-disable-next-line
   }, [searchQuery]);
 
-  const handleConnect = (appId, permissions) => {
-    setConnections({ ...connections, [appId]: { permissions, connectedAt: 'Just now' } });
-  };
+  // const handleConnect = (appId, permissions) => {
+  //   setConnections({ ...connections as any, [appId]: { permissions, connectedAt: 'Just now' } });
+  // };
 
   const handleDisconnect = (appId:string) => {
     axios.post(`${SERVER_URL}/integrations/${appId}`, {
@@ -508,7 +508,7 @@ export default function AppsIntegrations() {
       // Replace with actual backend route if needed
       const response = await axios.get(`${SERVER_URL}/integrations/apps`,{withCredentials:true}); // or '/apps' if proxied
       // Expected response structure: { apps: [{ app_id, permissions }] }
-      let myApps:[] = response.data.apps
+      let myApps = response.data.apps
       // Get apps where app_id exists
       // const filteredApps:[] = apps.filter((app: { app_id?: string }) => app.app_id);
       // n^2
@@ -516,6 +516,7 @@ export default function AppsIntegrations() {
       const otherApps: typeof availableApps = [];
       let perms = {}
       myApps.forEach((app)=>{
+        
         perms[app.app_id] = (app.permissions || []).reduce((acc, id) => {
           acc[id] = true;
           return acc;
@@ -626,6 +627,8 @@ export default function AppsIntegrations() {
                   key={app.id}
                   app={app}
                   isConnected={true}
+                  onConnect={() => setConnectModal(app)}
+
                   onManage={() => setManageModal(app)}
                 />
               ))}
@@ -645,6 +648,7 @@ export default function AppsIntegrations() {
                 key={app.id}
                 app={app}
                 isConnected={false}
+                onManage={() => setConnectModal(app)}
                 onConnect={() => setConnectModal(app)}
               />
             ))}

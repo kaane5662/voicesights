@@ -257,7 +257,7 @@ function UserProfile({ user, collapsed, onLogout }: UserProfileProps) {
 // ============================================
 // Sidebar Component
 // ============================================
-export default function Sidebar({  }: SidebarProps) {
+export default function Sidebar() {
   const [collapsed,setCollapsed] = useState(false)
   const [upgradeOpen,setUpgradeOpen] = useState(false)
   const [semanticSearch,setSemanticSearch] = useState(false)
@@ -347,7 +347,9 @@ export default function Sidebar({  }: SidebarProps) {
             )}
           </div>
         ))}
-        <NavItemButton onClick={()=>setSemanticSearch(true)} item={{icon:Sparkles,label:"Search", id:'semantic-search', href:''}}/>
+        <NavItemButton 
+        isActive={false}
+        collapsed={collapsed} onClick={()=>setSemanticSearch(true)} item={{icon:Sparkles,label:"Search", id:'semantic-search', href:''}}/>
 
       </nav>
 

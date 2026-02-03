@@ -82,7 +82,7 @@ export const SearchContentDropdown: React.FC<SearchTranscriptsDropdownProps> = (
   // Helper for type-to-link logic
   const getLinkByItem = (result: TranscriptSearchResult) => {
     console.log(result)
-    const { item_type, session_id, item_id } = result.metadata || {};
+    const { item_type, session_id, item_id } = result.metadata ;
     if (item_type === "session" && session_id) {
       return `/sessions/${session_id}/view`;
     }
