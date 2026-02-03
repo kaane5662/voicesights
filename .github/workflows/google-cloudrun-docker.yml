@@ -24,7 +24,7 @@
 #
 #    You can learn more about setting IAM permissions at
 #    https://cloud.google.com/iam/docs/manage-access-other-resources
-#
+
 # 3. Change the values in the "env" block to match your values.
 
 name: 'Build and Deploy to Cloud Run'
