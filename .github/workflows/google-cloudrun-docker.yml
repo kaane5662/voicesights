@@ -35,9 +35,9 @@ on:
       - 'main'
 
 env:
-  PROJECT_ID: ${{ secrets.PROJECT_ID }}
+  PROJECT_ID: 'voicesights'
   REGION: 'us-central1'
-  SERVICE: ${{ secrets.SERVICE }}
+  SERVICE: 'voicesights-backend'
   SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
   WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }} 
 
