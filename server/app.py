@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from routes import sessions,integrations,chats,docs,profiles,stripe,webhooks,folders
 from fastapi.middleware.cors import CORSMiddleware
-
+import uvicorn
 
 
 import os
@@ -10,7 +10,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000","https://voicesights.xyz"],
+    allow_origins=["http://localhost:3000","https://voicesights.xyz", "https://www.voicesights.xyz"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -30,7 +30,6 @@ async def read_root():
     return {"message": "Hello, World!"}
 
 if __name__ == "__main__":
-    import uvicorn
     env = os.environ.get("ENV", "dev")
     # If ENV=prod, bind to 0.0.0.0; else default to development mode (localhost)
     if env.lower() == "prod":
