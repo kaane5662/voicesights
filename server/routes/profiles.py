@@ -107,8 +107,8 @@ async def signup(user: SignupModel):
         value=access_token,
         httponly=True,
         secure=True if os.environ.get('ENV') == 'prod' else False,  # Set True if using HTTPS
-
-        samesite="none"
+        domain = '.voicesights.xyz' if os.environ.get('ENV') == 'prod' else '',
+        samesite="none" if os.environ.get('ENV') == 'prod' else 'lax'
     )
     return res
     
@@ -140,7 +140,8 @@ async def login(user: LoginModel):
         value=access_token,
         httponly=True,
         secure=True if os.environ.get('ENV') == 'prod' else False,  # Set True if using HTTPS
-        samesite="none"
+        domain = '.voicesights.xyz' if os.environ.get('ENV') == 'prod' else '',
+        samesite="none" if os.environ.get('ENV') == 'prod' else 'lax'
     )
     return res
     
