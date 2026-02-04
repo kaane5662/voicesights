@@ -40,7 +40,7 @@ async def create_checkout_session(data: StripePurchase,request:Request, user_id=
 
     if not price_id:
         return JSONResponse(status_code=400, content={"error": "Price ID not found"})
-    frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+    frontend_url = os.environ.get("CLIENT_DOMAIN", "http://localhost:3000")
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=["card"],
@@ -62,7 +62,7 @@ async def create_billing_portal_session(request: Request, customer_id: str = Bod
     Create a Stripe Billing Portal session for a user.
     Customer_id is the Stripe customer ID.
     """
-    frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+    frontend_url = os.environ.get("CLIENT_DOMAIN", "http://localhost:3000")
     try:
         session = stripe.billing_portal.Session.create(
             customer=customer_id,

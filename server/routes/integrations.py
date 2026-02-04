@@ -143,7 +143,7 @@ def google_callback(request:Request):
     # USER_DB[user_id] = {
     #     "refresh_token": creds.refresh_token
     # }
-    return RedirectResponse("http://localhost:3000/apps")
+    return RedirectResponse(os.environ.get('CLIENT_DOMAIN'))
 
   
 LINEAR_CLIENT_ID = os.environ["LINEAR_CLIENT_ID"]
@@ -263,7 +263,7 @@ def linear_callback(request: Request):
     profile.save()
     # USER_DB[user_id] = {"refresh_token": token_resp["refresh_token"]}
     # INSERT_YOUR_CODE
-    return RedirectResponse("http://localhost:3000/apps")
+    return RedirectResponse(os.environ.get('CLIENT_DOMAIN'))
     return JSONResponse({"status": "linear refresh token stored", "user_id": '1'})
 
 # ------------------
@@ -347,7 +347,7 @@ def slack_callback(request: Request):
         else:
             profile.apps = [new_token]
     profile.save()
-    return RedirectResponse("http://localhost:3000/apps")
+    return RedirectResponse(os.environ.get('CLIENT_DOMAIN'))
 
 
 

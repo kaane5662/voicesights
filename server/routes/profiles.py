@@ -100,13 +100,14 @@ async def signup(user: SignupModel):
         # "exp": int(exp_time.timestamp())
     }
     access_token = encode_jwt(payload)
-    print(access_token)
+    # print(access_token)
     res = JSONResponse(content={"message":"Signup successful"})
     res.set_cookie(
         key="auth_token",
         value=access_token,
         httponly=True,
-        secure=False,  # Set True if using HTTPS
+        secure=True if os.environ.get('ENV') == 'prod' else False,  # Set True if using HTTPS
+
         samesite="lax"
     )
     return res
@@ -138,7 +139,7 @@ async def login(user: LoginModel):
         key="auth_token",
         value=access_token,
         httponly=True,
-        secure=False,  # Set True if using HTTPS
+        secure=True if os.environ.get('ENV') == 'prod' else False,  # Set True if using HTTPS
         samesite="lax"
     )
     return res
