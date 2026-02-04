@@ -108,7 +108,7 @@ async def signup(user: SignupModel):
         httponly=True,
         secure=True if os.environ.get('ENV') == 'prod' else False,  # Set True if using HTTPS
 
-        samesite="lax"
+        samesite="none"
     )
     return res
     
@@ -140,7 +140,7 @@ async def login(user: LoginModel):
         value=access_token,
         httponly=True,
         secure=True if os.environ.get('ENV') == 'prod' else False,  # Set True if using HTTPS
-        samesite="lax"
+        samesite="none"
     )
     return res
     
