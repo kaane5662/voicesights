@@ -44,6 +44,33 @@ connect_to_mongo()
 async def google_oauth(input:TokenInput,request: Request = None,
     user_id: str = None):
     print(input.permissions)
+    if input.action == "disconnect":
+        profile = Profile.objects(id=user_id).first()
+  
+        if not profile:
+            return JSONResponse(content= {'error': "Can't find token"}, status_code=401)
+        index = next((i for i, app in enumerate(profile.apps) if app.app_id == input.app_id), -1)
+        if index != -1:
+            encrypted_token = profile.apps[index].refresh_token
+            refresh_token = decode_jwt(encrypted_token)['token']
+
+
+            if not refresh_token:
+                return JSONResponse(content={"message": "Invalid token found"},status_code=400)
+            resp = requests.post(
+                "https://oauth2.googleapis.com/revoke",
+                params={"token": refresh_token},
+                headers={"Content-Type": "application/x-www-form-urlencoded"}
+            )
+                # Optionally check resp status for debugging
+            
+            # INSERT_YOUR_CODE
+            profile.apps.pop(index)
+            profile.save()
+            # Invalidate the current session cookie (remove auth_token)
+            return JSONResponse(content={"message": "Disconnected Linear integration, revoked token, and invalidated session."})
+        else:
+            return JSONResponse(content={"error": "Linear integration not found."}, status_code=404)
     flow = Flow.from_client_config(
         {
             "web": {
@@ -166,7 +193,40 @@ user_id: str = None):
         return JSONResponse({"error": "Not found"}, status_code=404)
 
     if input.action == 'disconnect':
-        return JSONResponse(content={'message':"Dusconnecting"})
+        # INSERT_YOUR_CODE
+        # Remove Linear OAuth token for user, revoke it via Linear API, and invalidate current token (auth cookie)
+        profile = Profile.objects(id=user_id).first()
+  
+        if not profile:
+            return JSONResponse(content= {'error': "Can't find token"}, status_code=401)
+        index = next((i for i, app in enumerate(profile.apps) if app.app_id == 'linear'), -1)
+        if index != -1:
+            encrypted_token = profile.apps[index].refresh_token
+            refresh_token = decode_jwt(encrypted_token)['token']
+
+
+            if not refresh_token:
+                return JSONResponse(content={"message": "Invalid token found"},status_code=400)
+            resp = requests.post(
+                "https://api.linear.app/oauth/token/revoke",
+                data={
+                    "token": refresh_token,
+                    "client_id": LINEAR_CLIENT_ID,
+                    "client_secret": LINEAR_CLIENT_SECRET,
+                },
+                headers={"Content-Type": "application/x-www-form-urlencoded"}
+            )
+                # Optionally check resp status for debugging
+            
+            # INSERT_YOUR_CODE
+            profile.apps.pop(index)
+            profile.save()
+            # Invalidate the current session cookie (remove auth_token)
+            return JSONResponse(content={"message": "Disconnected Linear integration, revoked token, and invalidated session."})
+        else:
+            return JSONResponse(content={"error": "Linear integration not found."}, status_code=404)
+        
+   
 
     perms = ",".join(input.permissions)
 
@@ -289,7 +349,36 @@ async def slack_auth(input: TokenInput, request: Request = None, user_id: str = 
         return JSONResponse({"error": "Not found"}, status_code=404)
 
     if input.action == "disconnect":
-        return JSONResponse(content={'message': "Disconnecting"})
+        profile = Profile.objects(id=user_id).first()
+  
+        if not profile:
+            return JSONResponse(content= {'error': "Can't find token"}, status_code=401)
+        index = next((i for i, app in enumerate(profile.apps) if app.app_id == 'slack'), -1)
+        if index != -1:
+            encrypted_token = profile.apps[index].refresh_token
+            refresh_token = decode_jwt(encrypted_token)['token']
+
+
+            if not refresh_token:
+                return JSONResponse(content={"message": "Invalid token found"},status_code=400)
+            resp = requests.post(
+                "https://slack.com/api/apps.uninstall",
+                data={
+                    "token": refresh_token,
+                    "client_id": SLACK_CLIENT_ID,
+                    "client_secret": SLACK_CLIENT_SECRET,
+                },
+                headers={"Content-Type": "application/x-www-form-urlencoded"}
+            )
+                # Optionally check resp status for debugging
+            
+            # INSERT_YOUR_CODE
+            profile.apps.pop(index)
+            profile.save()
+            # Invalidate the current session cookie (remove auth_token)
+            return JSONResponse(content={"message": "Disconnected Linear integration, revoked token, and invalidated session."})
+        else:
+            return JSONResponse(content={"error": "Linear integration not found."}, status_code=404)
     
     scopes = ",".join(input.permissions or SLACK_SCOPES)
     params = {

@@ -20,6 +20,7 @@ from helpers.docs import compile_to_tiptap
 from helpers.auth import login_required
 from schema import Pagination
 from helpers.pinecone import delete_docmuents_pinecone, reindex_pinecone
+from config.rate_limiter import limiter
 # from tools import add_google_calendar_events_rest, create_linear_issues, get_google_calendars, get_linear_teams
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
@@ -45,6 +46,7 @@ connect_to_mongo()
 
 # Create a new chat thread for a user
 @router.post("/{session_id}")
+@limiter.limit("5/10minutes")
 @login_required
 async def create_doc(session_id: str, request:Request, user_id=None):
 
@@ -247,8 +249,10 @@ class AllBlocks(BaseModel):
 
 
 @router.post("/{doc_id}/block")
-async def create_doc_block(doc_id: str, request:Request):
-
+@limiter.limit("15/minute")
+@login_required
+async def create_doc_block(doc_id: str, request:Request, user_id=None):
+    # print("hello")
     data = await request.json()
     # print(data)
     llm = ChatOpenAI(

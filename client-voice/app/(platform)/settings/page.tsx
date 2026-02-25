@@ -5,6 +5,7 @@ import axios from 'axios';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { notFound } from 'next/navigation';
 import { SERVER_URL } from '@/const';
+import UpgradePopup from '@/components/popups/SubscriptionPopup';
 
 // ============================================
 // Types
@@ -371,7 +372,7 @@ function SecuritySettings() {
 // ============================================
 function BillingSettings({ profile }: { profile: Profile }) {
   const [isLoading, setIsLoading] = useState(false);
-
+  const [displayPlans,setDisplayPlans] = useState(false)
   const handleManageBilling = async () => {
     setIsLoading(true);
     try{
@@ -398,6 +399,10 @@ function BillingSettings({ profile }: { profile: Profile }) {
 
   return (
     <div className="space-y-6">
+
+      {displayPlans &&(
+        <UpgradePopup isOpen={displayPlans} onClose={()=>setDisplayPlans(false) }/>
+      )}
       <div>
         <h2 className="text-xl font-semibold text-white mb-1">Billing</h2>
         <p className="text-sm text-slate-500">Manage your subscription and payment methods</p>
@@ -415,7 +420,9 @@ function BillingSettings({ profile }: { profile: Profile }) {
               </span>
             </div>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white text-sm font-medium hover:opacity-90 transition-all">
+          <button 
+          onClick={()=>setDisplayPlans(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white text-sm font-medium hover:opacity-90 transition-all">
             Upgrade Plan
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -618,7 +625,7 @@ export default function SettingsPage() {
     { id: 'profile' as const, label: 'Profile', icon: User },
     { id: 'security' as const, label: 'Security', icon: Shield },
     { id: 'billing' as const, label: 'Billing', icon: CreditCard },
-    { id: 'notifications' as const, label: 'Notifications', icon: Bell },
+    // { id: 'notifications' as const, label: 'Notifications', icon: Bell },
   ];
 
 
@@ -660,7 +667,7 @@ export default function SettingsPage() {
             {activeTab === 'profile' && <ProfileSettings profile={profile} onUpdate={setProfile} />}
             {activeTab === 'security' && <SecuritySettings />}
             {activeTab === 'billing' && <BillingSettings profile={profile} />}
-            {activeTab === 'notifications' && <NotificationsSettings />}
+            {/* {activeTab === 'notifications' && <NotificationsSettings />} */}
             
             {activeTab === 'profile' && <DangerZone />}
           </div>

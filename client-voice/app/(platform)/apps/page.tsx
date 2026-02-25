@@ -433,7 +433,7 @@ function ManageModal({ app, connections, onClose, onDisconnect, onUpdatePermissi
             </button>
           </div>
           <button
-            onClick={() => { onDisconnect(app.id); onClose(); }}
+            onClick={() => { onDisconnect(app); onClose(); }}
             className="w-full px-4 py-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 transition-all flex items-center justify-center gap-2"
           >
             <Trash2 className="w-4 h-4" />
@@ -471,9 +471,9 @@ export default function AppsIntegrations() {
   //   setConnections({ ...connections as any, [appId]: { permissions, connectedAt: 'Just now' } });
   // };
 
-  const handleDisconnect = (appId:string) => {
-    axios.post(`${SERVER_URL}/integrations/${appId}`, {
-      app_id: appId,
+  const handleDisconnect = (app:typeof availableApps[0]) => {
+    axios.post(`${SERVER_URL}/integrations/${app.type || app.id}`, {
+      app_id: app.id,
       permissions: [],
       action: 'disconnect'
     },{withCredentials:true}).then(response => {

@@ -1,9 +1,13 @@
 # INSERT_YOUR_CODE
+import json
+from uuid import uuid4
 from fastapi import APIRouter, HTTPException, Request, status, Query, Body
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse, RedirectResponse
 
+from google_auth_oauthlib.flow import Flow
 from openai import OpenAI
 from pydantic import BaseModel, Field
+import requests
 
 from config.mongo import connect_to_mongo
 
@@ -13,6 +17,8 @@ import os
 
 # from tools import add_google_calendar_events_rest, create_linear_issues, get_google_calendars, get_linear_teams
 import stripe
+
+from config.rate_limiter import limiter
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 router = APIRouter(prefix="/profiles", tags=["profiles"])
@@ -80,7 +86,8 @@ async def get_profile(request: Request = None,
 
 
 @router.post("/signup", response_model=TokenResponse)
-async def signup(user: SignupModel):
+@limiter.limit("5/10minutes")
+async def signup(user: SignupModel, request:Request):
     # Check if user exists
     existing = Profile.objects(email=user.email).first()
     if existing:
@@ -107,19 +114,21 @@ async def signup(user: SignupModel):
         value=access_token,
         httponly=True,
         secure=True if os.environ.get('ENV') == 'prod' else False,  # Set True if using HTTPS
-        domain = '.voicesights.xyz' if os.environ.get('ENV') == 'prod' else '',
+        domain = '.voicesights.xyz' if os.environ.get('ENV') == 'prod' else None,
         samesite="none" if os.environ.get('ENV') == 'prod' else 'lax'
     )
     return res
     
 
 @router.post("/login", response_model=TokenResponse)
-async def login(user: LoginModel):
+@limiter.limit("5/10minutes")
+async def login(user: LoginModel, request:Request):
     profile = Profile.objects(email=user.email).first()
     if not profile:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     # Decrypt and check password match
     pw_payload = decode_jwt(profile.password)
+    print(user.password, pw_payload.get("pw"))
     if not pw_payload or pw_payload.get("pw") != user.password or pw_payload.get("email") != user.email:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     now = datetime.datetime.utcnow()
@@ -140,16 +149,23 @@ async def login(user: LoginModel):
         value=access_token,
         httponly=True,
         secure=True if os.environ.get('ENV') == 'prod' else False,  # Set True if using HTTPS
-        domain = '.voicesights.xyz' if os.environ.get('ENV') == 'prod' else '',
+        domain = '.voicesights.xyz' if os.environ.get('ENV') == 'prod' else None,
         samesite="none" if os.environ.get('ENV') == 'prod' else 'lax'
     )
     return res
     
     
-@router.post("/logout")
-async def logout(request: Request, user=Depends(login_required)):
-    # JWT logout: client should delete token. Server can blacklist (not shown).
-    return JSONResponse(status_code=200, content={"message": "Logged out successfully."})
+@router.delete("/logout")
+@login_required
+async def logout(request: Request, user_id=None):
+    # JWT logout: remove auth_token cookie
+    res = JSONResponse(status_code=200, content={"message": "Logged out successfully."})
+    res.delete_cookie(
+        key="auth_token",
+        domain='.voicesights.xyz' if os.environ.get('ENV') == 'prod' else '',
+        samesite="none" if os.environ.get('ENV') == 'prod' else 'lax'
+    )
+    return res
 
 
 
@@ -283,5 +299,131 @@ async def change_email(request: Request, body: ChangeEmailRequest, user_id: str 
     profile.password = enc
     profile.save()
     return {"success": True, "message": "Email updated successfully.", "new_email": profile.email}
+
+
+    # INSERT_YOUR_CODE
+
+@router.get("/google-auth")
+@login_required
+async def start_google_auth(request: Request, user_id: str = None):
+    """
+    Start Google OAuth 2.0.
+    """
+    flow = Flow.from_client_config(
+        {
+            "web": {
+                "client_id": os.environ.get("GOOGLE_CLIENT_ID"),
+                "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET"),
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri":  "https://oauth2.googleapis.com/token",
+            }
+        },
+        state=json.dumps({'user_id': user_id}),
+        scopes=[
+            "openid",
+            "email",
+            "profile",
+            # Add more scopes here if you need more Google info access
+        ],
+        redirect_uri=os.environ.get("GOOGLE_AUTH_REDIRECT_URI"),
+    )
+    auth_url, _ = flow.authorization_url(access_type="offline", prompt="consent")
+    return {"url": auth_url}
+
+@router.get("/google-callback")
+async def google_oauth_callback(
+    code: str = Query(...), 
+    state: str = Query(...)
+):
+    """
+    Callback for Google OAuth 2.0. Stores refresh token in user's profile.
+    """
+    state_data = json.loads(state)
+
+    # We don't use 3rd party packages, only Google's OAuth 2.0 REST API endpoints.
+    # Use Flow just for token request formatting and parsing.
+    flow = Flow.from_client_config(
+        {
+            "web": {
+                "client_id": os.environ.get("GOOGLE_CLIENT_ID"),
+                "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET"),
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri":  "https://oauth2.googleapis.com/token",
+            }
+        },
+        scopes=[
+            "openid",
+            "https://www.googleapis.com/auth/userinfo.profile",
+            "https://www.googleapis.com/auth/userinfo.email",
+            # Add more scopes here if you need more Google info access
+        ],
+        redirect_uri=os.environ.get("GOOGLE_AUTH_REDIRECT_URI"),
+    )
+    flow.fetch_token(code=code)
+    creds = flow.credentials
+    if not creds.refresh_token:
+        return PlainTextResponse(
+            "No refresh token issued. Revoke app access and try again.",
+            status_code=400,
+        )
+    
+
+    access_token = creds.token
+    userinfo_response = requests.get(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+
+    if userinfo_response.status_code != 200:
+        return PlainTextResponse(
+            "Failed to retrieve user info from Google.",
+            status_code=400,
+        )
+
+    userinfo = userinfo_response.json()
+    email = userinfo.get("email")
+    name = userinfo.get("name") or userinfo.get("given_name", "")
+    picture = userinfo.get("picture")
+
+    # Check if a Profile already exists with this email
+    profile = Profile.objects(email=email).first()
+    random_password = str(uuid4())
+    if not profile:
+        # Encrypt the random password for storage
+        encrypted_pw = encode_jwt({"email": email, "pw": random_password})
+        # Create new profile account
+        profile = Profile(
+            # username=email.split('@')[0],
+            email=email,
+            # display_name=name or email.split('@')[0],
+            # picture=picture,
+            # oauth_provider="google",
+            # oauth_id=userinfo.get("sub"),
+            password=encrypted_pw,
+        )
+        profile.save()
+
+    # Now perform "login": issue JWT, set cookie, redirect.
+    now = datetime.datetime.utcnow()
+    exp_minutes = 60 * 24 * 7  # match login() token expiry (7 days)
+    exp_time = now + datetime.timedelta(minutes=exp_minutes)
+    payload = {
+        "sub": str(profile.id),
+        "email": profile.email,
+        # "iat": int(now.timestamp()),
+        # "exp": int(exp_time.timestamp())
+    }
+    access_token = encode_jwt(payload)
+    # Return a response with a login cookie and redirect to dashboard
+    res = RedirectResponse(f'{os.environ.get("CLIENT_DOMAIN")}/dashboard')
+    res.set_cookie(
+        key="auth_token",
+        value=access_token,
+        httponly=True,
+        secure=True if os.environ.get('ENV') == 'prod' else False,
+        domain='.voicesights.xyz' if os.environ.get('ENV') == 'prod' else None,
+        samesite="none" if os.environ.get('ENV') == 'prod' else 'lax'
+    )
+    return res
 
 

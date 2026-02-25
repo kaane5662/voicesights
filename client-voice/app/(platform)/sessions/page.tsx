@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { SERVER_URL } from "@/const";
 import axios from "axios";
 import Pagination from "@/components/ui/Pagination";
+import { Session } from "@/app/interfaces";
 
 
 
@@ -168,6 +169,21 @@ export default function SessionsPage() {
       }
     }
 
+    async function handleDelete(session:Session) {
+
+      if (!window.confirm("Are you sure you want to delete this session?")) return;
+
+      try {
+        // You may need to adjust API endpoint as per your backend
+        await axios.delete(`${SERVER_URL}/sessions/${session.id}`, {
+          withCredentials: true,
+        });
+        setSessions(prev=>prev.filter(s=>s.id!=session.id))
+        
+      } catch (err) {
+        alert("Failed to delete session.");
+      } 
+    }
   
     const toggleStar = (id) => {
       setSessions(sessions.map(s => s.id === id ? { ...s, starred: !s.starred } : s));
@@ -280,6 +296,7 @@ export default function SessionsPage() {
                   key={session.id}
                   session={session}
                   isSelected={selectedSession === session.id}
+                  onDelete={()=>handleDelete(session)}
                   // onSelect={() => setSelectedSession(selectedSession === session.id ? null : session.id)}
                   // onToggleStar={() => toggleStar(session.id)}
                 />

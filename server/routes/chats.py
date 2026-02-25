@@ -13,6 +13,7 @@ from langchain_core.messages import BaseMessage, ChatMessage
 from langchain_openai import ChatOpenAI
 from models import ChatSession, Session
 from schema import Pagination
+from config.rate_limiter import limiter
 from tools import append_rows_to_google_sheet, get_google_calendars,get_linear_teams,create_linear_issues,add_google_calendar_events_rest, query_graphiti_tool, slack_list_channels, slack_post_message
 
 from langchain.agents import create_agent
@@ -73,6 +74,7 @@ async def get_all_chats(
     }
 # Create a new chat thread for a user
 @router.post("/{session_id}")
+@limiter.limit("5/10minutes")
 @login_required
 async def create_chat_for_user(session_id: str, request:Request, user_id=None):
 
@@ -118,6 +120,18 @@ def get_chat(session_id: str, chat_id:str):
     if not chat_session:
         return JSONResponse(status_code=404,content={'error':"Not a valid chat session found"})
     return {'chat':chat_session.to_dict()}
+
+@router.delete("/{chat_id}/")
+@login_required
+async def delete_chat(chat_id:str, request:Request, user_id=None):
+    chat_session = ChatSession.objects(owner_id=user_id, id=chat_id).first()
+    if chat_session:
+        # INSERT_YOUR_CODE
+        chat_session.delete()
+        return {"message": "Chat session deleted successfully"}
+  
+    return JSONResponse(status_code=404,content={'error':"Not a valid chat session found"})
+
 
 
 # Fetch all chat threads for a user
@@ -168,7 +182,7 @@ async def create_conversation_with_tools(chat_id: str, body: InputText, request:
         )
         agent = create_agent(
             model=model,
-            tools = [get_google_calendars,get_linear_teams,create_linear_issues,add_google_calendar_events_rest, append_rows_to_google_sheet, query_graphiti_tool, slack_list_channels, slack_post_message],
+            tools = [get_google_calendars,get_linear_teams,create_linear_issues,add_google_calendar_events_rest, append_rows_to_google_sheet,  slack_list_channels, slack_post_message],
             
             # tools=body.tools or []
         )
@@ -211,6 +225,7 @@ async def create_conversation_with_tools(chat_id: str, body: InputText, request:
 
 
 @router.post("/knowledge-base/")
+@limiter.limit("5/minute")
 @login_required
 async def ask_knowledgebase(body: InputText, request: Request = None,
     user_id: str = None):

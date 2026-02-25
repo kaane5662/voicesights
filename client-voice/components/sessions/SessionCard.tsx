@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { Search, Clock, Calendar, MessageSquare, Sparkles, ChevronRight, Filter, SortDesc, Mic, MoreHorizontal, Star, StarOff, Trash2, Download, Play, TrendingUp, Hash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Session } from '@/app/interfaces';
+import { formatRelativeTime } from '@/utils/dates';
+import axios from 'axios';
 
 // ============================================
 // Session Card Component
 // ============================================
-export default function SessionCard({ session, isSelected}:{session:Session, isSelected:boolean}) {
+export default function SessionCard({ session, isSelected, onDelete }:{session: Session, isSelected: boolean, onDelete: () => void}) {
   const router = useRouter()
   const formatDuration = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
@@ -39,9 +41,11 @@ export default function SessionCard({ session, isSelected}:{session:Session, isS
     }
   };
 
+  
+
   return (
     <div
-      onClick={()=>router.push( `/session/${session.id}/${session.finished ? 'view':'record'}`)}
+      
       className={`group p-5 rounded-2xl border transition-all cursor-pointer ${
         isSelected
           ? 'bg-white/10 border-violet-500/50 shadow-lg shadow-violet-500/10'
@@ -55,18 +59,22 @@ export default function SessionCard({ session, isSelected}:{session:Session, isS
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-4 mb-2">
-            <div>
-              <h3 className="font-semibold text-lg text-white group-hover:text-violet-300 transition-colors">
+            <div
+            onClick={()=>router.push( `/session/${session.id}/${session.finished ? 'view':'record'}`)}
+            >
+              <h3 
+              
+              className="font-semibold text-lg text-white group-hover:text-violet-300 transition-colors">
                 {session.title}
               </h3>
               <div className="flex items-center gap-3 mt-1 text-sm text-slate-500">
                 <span className="flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5" />
-                  {/* {formatDate(session.date)} at {formatTime(session.date)} */}
+                  {formatDate(session.created_at)}
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />
-                  {formatDate(session.created_at)}
+                  {formatRelativeTime(session.created_at)}
                 </span>
                 <span className="flex items-center gap-1">
                   <MessageSquare className="w-3.5 h-3.5" />
@@ -76,7 +84,7 @@ export default function SessionCard({ session, isSelected}:{session:Session, isS
             </div>
 
             <div className="flex items-center gap-2">
-              <button
+              {/* <button
                 // onClick={(e) => { e.stopPropagation(); onToggleStar(); }}
                 className={`p-2 rounded-lg transition-all ${
                   session.starred
@@ -88,9 +96,11 @@ export default function SessionCard({ session, isSelected}:{session:Session, isS
               </button>
               <button className="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-all">
                 <Download className="w-4 h-4" />
-              </button>
-              <button className="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-all">
-                <MoreHorizontal className="w-4 h-4" />
+              </button> */}
+              <button 
+              onClick={onDelete}
+              className="p-2 rounded-lg text-slate-500 hover:text-red-500 hover:bg-white/10 transition-all">
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>

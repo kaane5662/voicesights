@@ -4,8 +4,9 @@
 import { useEffect, useState } from "react";
 import { SERVER_URL } from "@/const";
 import axios from "axios";
-import { Folder as FolderIcon, Loader2, ArrowLeft, X } from "lucide-react";
+import { Folder as FolderIcon, Loader2, ArrowLeft, X, MessageCircle, FileText, Mic, Play } from "lucide-react";
 import DeleteFolderPopup from "@/components/popups/DeleteFolder";
+import Link from "next/link";
 
 type FolderContentItem = {
   id: string;
@@ -40,6 +41,7 @@ export default function FoldersPage() {
         withCredentials: true,
       });
       if (res.status === 200 && res.data?.content) {
+        console.log(res.data.content)
         setContent(res.data.content);
       } else {
         setContent([]);
@@ -187,28 +189,51 @@ export default function FoldersPage() {
                         </button>
                       ) : (
                         <div
-                          className="flex items-center py-2 gap-3 px-2 rounded-lg bg-slate-700/30 opacity-60 select-none cursor-not-allowed min-h-[2.5rem]"
+                          className="flex items-center py-2 gap-3 px-2 rounded-lg bg-slate-700/30  min-h-[2.5rem]"
                           title={`Cannot enter a ${item.type}`}
                         >
                           {/* Simple icon by type */}
+                          {/* Chat */}
                           {item.type === "chat" && (
-                            <span className="inline-block w-5 h-5 text-emerald-300">💬</span>
+                            <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20">
+                              <MessageCircle className="w-3.5 h-3.5 text-amber-400" />
+                            </span>
                           )}
+                          {/* Doc */}
                           {item.type === "doc" && (
-                            <span className="inline-block w-5 h-5 text-amber-300">📝</span>
+                            <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                              <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                            </span>
                           )}
+                          {/* Session */}
                           {item.type === "session" && (
-                            <span className="inline-block w-5 h-5 text-cyan-400">🎤</span>
+                            <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-violet-500/10 border border-violet-500/20">
+                              <Play className="w-3.5 h-3.5 text-violet-400" />
+                            </span>
                           )}
-                          <div className="flex-1 min-w-0">
-                            <div className="text-white/70 truncate">{item.title}</div>
+                          <Link 
+                          
+                            href={
+                              item.type === "chat"
+                                ? `/session/${item.session_id || item.id}/view?chatId=${item.id}`
+                                : item.type === "doc"
+                                ? `/session/${item.session_id || item.id}/view?noteId=${item.id}`
+                                : item.type === "session"
+                                ? `/session/${item.id}/view`
+                                : "#"
+                            }
+                 
+                            style={{ textDecoration: 'none', color: 'inherit' }}
+                          
+                          className="flex-1 min-w-0">
+                            <div className="text-white truncate">{item.title}</div>
                             <div className="text-xs text-slate-400 truncate capitalize">{item.type}</div>
                             {item.created_at && (
                               <div className="text-xs text-slate-500 truncate">
                                 {new Date(item.created_at).toLocaleString()}
                               </div>
                             )}
-                          </div>
+                          </Link>
                         </div>
                       )}
                     </li>

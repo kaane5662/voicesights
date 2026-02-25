@@ -20,82 +20,7 @@ import axios from "axios";
 import { formatDate, formatRelativeTime } from "@/utils/dates";
 import SelectFolderPopup from "../popups/SelectFolder";
 
-// INSERT_YOUR_CODE
 
-// Helper function to fetch all notes/docs (assumes endpoint /api/notes)
-async function fetchNotes(): Promise<Note[]> {
-  try {
-    const res = await fetch('/api/notes');
-    if (!res.ok) {
-      throw new Error('Failed to fetch notes');
-    }
-    const data = await res.json();
-    return data.notes || [];
-  } catch (err) {
-    console.error('Error fetching notes:', err);
-    return [];
-  }
-}
-
-// Helper function to fetch a single note/doc by ID (assumes endpoint /api/notes/:id)
-async function fetchNoteById(id: string): Promise<Note | null> {
-  try {
-    const res = await fetch(`/api/notes/${id}`);
-    if (!res.ok) {
-      throw new Error('Failed to fetch note');
-    }
-    const data = await res.json();
-    return data.note || null;
-  } catch (err) {
-    console.error(`Error fetching note ${id}:`, err);
-    return null;
-  }
-}
-
-// Helper function to save/update a note (assumes endpoint /api/notes/:id and PATCH)
-async function saveNote(note: Note): Promise<boolean> {
-  try {
-    const res = await fetch(`/api/notes/${note.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(note),
-    });
-    return res.ok;
-  } catch (err) {
-    console.error('Error saving note:', err);
-    return false;
-  }
-}
-
-// Helper function to create a new note (assumes endpoint /api/notes and POST)
-async function createNote(note: Omit<Note, 'id' | 'created_at'>): Promise<Note | null> {
-  try {
-    const res = await fetch('/api/notes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(note),
-    });
-    if (!res.ok) {
-      throw new Error('Failed to create note');
-    }
-    const data = await res.json();
-    return data.note || null;
-  } catch (err) {
-    console.error('Error creating note:', err);
-    return null;
-  }
-}
-
-// Helper function to delete a note (assumes endpoint /api/notes/:id and DELETE)
-async function deleteNote(id: string): Promise<boolean> {
-  try {
-    const res = await fetch(`/api/notes/${id}`, { method: 'DELETE' });
-    return res.ok;
-  } catch (err) {
-    console.error('Error deleting note:', err);
-    return false;
-  }
-}
 
 
 interface Note {
@@ -227,6 +152,8 @@ export default function NotesSidebar({
     async function deleteNoteById(id: string) {
       try {
         if (!id) return false;
+        // INSERT_YOUR_CODE
+        if (!window.confirm("Are you sure you want to delete this note?")) return false;
         const res = await axios.delete(`${SERVER_URL}/docs/${id}/delete/`, {
           // data: {}, // some backends require this for DELETE with JSON body
           withCredentials: true,

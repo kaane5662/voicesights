@@ -7,6 +7,7 @@ import { useParams } from 'next/navigation';
 import { ChatBrowse } from '@/components/popups/ChatBrowse';
 import { AiSuggestion, ChatSession } from '@/app/interfaces';
 import { SERVER_URL } from '@/const';
+import { ChatsList } from './ChatsList';
 
 const presets = [
     { icon: Calendar, label: 'Add to Calendar', description: 'Create events from items', color: 'cyan' },
@@ -91,7 +92,7 @@ export default function Chatbar({sessionId, sessionSummaries, defaultChatId,sugg
         
         try {
 
-            setMessages(prev=>[...prev, {'content':chatInput, 'role':'user'} as any])
+            // setMessages(prev=>[...prev,{'content':chatInput, 'role':'user'} as any])
             // setChatInput('')
             const response = await fetch(`${SERVER_URL}/chats/${sessionId}`, {
                 method: 'POST',
@@ -109,7 +110,7 @@ export default function Chatbar({sessionId, sessionSummaries, defaultChatId,sugg
             // INSERT_YOUR_CODE
             // await new Promise(resolve => setTimeout(resolve, 500));
             // chatConversation()
-            return data;
+            return data.chat;
         } catch (error) {
             console.error('Error creating chat session:', error);
             return null;
@@ -121,14 +122,21 @@ export default function Chatbar({sessionId, sessionSummaries, defaultChatId,sugg
     async function chatConversation() {
         try {
 
+            setChatInput('')
+            setIsTyping(true)
+            setMessages((prev)=>[...prev, {role:'user', content:chatInput} as any])
+            let created = false;
+            let newChat = null
             if(!chatSession){
-                return createChatSession()
+                newChat = await createChatSession()
+                if(!newChat) return
+                created = true
                 // return chatConversation() 
             } 
-            setChatInput('')
-            setMessages((prev)=>[...prev, {role:'user', content:chatInput} as any])
-            setIsTyping(true)
-            const response = await fetch(`${SERVER_URL}/chats/${chatSession.id}/message`, {
+            
+            
+            console.log(newChat)
+            const response = await fetch(`${SERVER_URL}/chats/${created? newChat.id:chatSession.id}/message`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -164,7 +172,7 @@ export default function Chatbar({sessionId, sessionSummaries, defaultChatId,sugg
     return(
         <div className="w-full h-screen border-l border-white/10 flex flex-col relative z-10 bg-slate-900/50">
 
-            {chatOpen &&(
+            {/* {chatOpen &&(
 
               <ChatBrowse
                   sessionId={sessionId}
@@ -172,14 +180,30 @@ export default function Chatbar({sessionId, sessionSummaries, defaultChatId,sugg
                   onSelectChat={fetchSessionMessages}
                   onClose={()=>setChatOpen(false)}
               />
-            )}
+            )} */}
         <div className="p-5 border-b border-white/10">
           <div className="flex items-center gap-2 mb-3">
             <Zap className="w-4 h-4 text-violet-400" />
             <h2 className="font-semibold w-full max-h-5 overflow-hidden whitespace-nowrap">{chatSession?.title || "New Chat"}</h2>
-            <button 
-            onClick={()=>setChatOpen(true)}
-            className="p-2 ml-auto rounded-xl bg-white/5 hover:bg-white/10 border border-white/10"><History className="w-5 h-5 text-slate-400" /></button>
+            <div className='relative flex flex-col'>
+              <button 
+              onClick={()=>setChatOpen(!chatOpen)}
+              className="p-2 ml-auto rounded-xl bg-white/5 hover:bg-white/10 border border-white/10">
+                <History className="w-5 h-5 text-slate-400" />
+                
+              </button>
+              {chatOpen&&(
+                <ChatsList
+                sessionId={sessionId}
+                  onNewChat={resetChat}
+                  onSelectChat={fetchSessionMessages}
+                  onClose={()=>setChatOpen(false)}
+                />
+
+                
+              )}
+
+            </div>
           </div>
           <div className="overflow-x-scroll [&::-webkit-scrollbar]:h-1 flex gap-2">
             {suggestions.length > 0 && suggestions.map((suggestion, i) => (

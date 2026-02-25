@@ -2,22 +2,20 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { Mic, Sparkles, Folder, LayoutDashboard, BookOpen, MessageSquare, ChevronRight, Check, Loader2 } from "lucide-react";
+import { Mic, Sparkles, Folder, LayoutDashboard, BookOpen, MessageSquare, ChevronRight, Check, Loader2, ChevronLeft, Calendar, Search } from "lucide-react";
+import LandingNavbar from "@/components/nav/LandingNavbar";
 
 // ---- Hero Section ----
 function Hero() {
   return (
-    <section className="relative flex flex-col-reverse lg:flex-row min-h-[68vh] items-center justify-between py-20 px-6 lg:px-16 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <section className="relative flex flex-col gap-8 min-h-[68vh] items-center justify-between py-20 px-6 lg:px-16 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       {/* Left Content */}
-      <div className="flex-1 flex flex-col items-start justify-center gap-8 z-10 mt-8 lg:mt-0">
-        <div className="flex items-center gap-3">
-          <Mic className="w-7 h-7 text-white" />
-          <span className="text-lg font-bold text-white">voicesights</span>
-        </div>
-        <h1 className="text-4xl sm:text-5xl xl:text-6xl font-extrabold text-white leading-tight max-w-xl">
+      <div className="flex-1 flex flex-col justify-center gap-8 z-10 mt-8 lg:mt-0 items-center text-center">
+        
+        <h1 className="text-4xl sm:text-5xl xl:text-6xl font-extrabold text-white leading-tight">
           Transform your <span className="bg-gradient-to-r from-violet-400 to-fuchsia-600 bg-clip-text text-transparent">voice</span> into actionable insights.
         </h1>
-        <p className="text-lg text-slate-400 max-w-lg">
+        <p className="text-md text-slate-400 max-w-lg">
           Capture conversations and meetings, let AI organize your knowledge, and unlock instant, actionable summaries—so you can focus on what matters.
         </p>
         <div className="flex gap-4">
@@ -49,12 +47,16 @@ function Hero() {
 
       {/* Hero Image */}
       <div className="flex-1 flex items-center justify-center mb-12 lg:mb-0">
-        <div className="relative w-[360px] h-[400px] lg:w-[420px] lg:h-[480px] flex items-center justify-center">
+        <div className="relative w-[80%] h-fit flex items-center justify-center">
           {/* Main Device Image */}
           <div className="absolute inset-0 bg-gradient-to-br from-violet-600/20 to-fuchsia-600/20 rounded-3xl blur-xl"></div>
           <div className="w-full h-full bg-white/5 border border-white/10 rounded-3xl shadow-lg flex items-center justify-center">
             {/* Placeholder image */}
-            <span className="text-slate-500 text-xl font-semibold">[Product Mockup]</span>
+            <img
+              src="/landing/LandingHero.png"
+              alt="VoiceAI App Device Preview"
+              className="w-full h-full object-cover rounded-2xl shadow-lg"
+            />
           </div>
           {/* Overlay Integration Logos (boilerplate) */}
           <div className="absolute -top-8 -left-10 flex flex-col items-center">
@@ -74,50 +76,149 @@ function Hero() {
   );
 }
 
-// ---- Features Section ----
+
+function UseCases() {
+  const useCases = [
+    {
+      icon: <BookOpen className="w-8 h-8 text-violet-400" />,
+      title: "Auto Meeting Summaries",
+      desc: "Generate concise, structured summaries from your recordings so you never miss the main points or next steps.",
+    },
+    {
+      icon: <LayoutDashboard className="w-8 h-8 text-fuchsia-400" />,
+      title: "Task Planning & Assignment",
+      desc: "Turn talked-about action items into tasks and sync them with project managers like Linear, Asana, or Jira.",
+    },
+    {
+      icon: <Calendar className="w-8 h-8 text-emerald-400" />,
+      title: "Calendar Integration",
+      desc: "Keep your calendar up to date with key decisions and follow-ups, pulled directly from your voice sessions.",
+    },
+    {
+      icon: <Search className="w-8 h-8 text-cyan-400" />,
+      title: "Searchable Conversation History",
+      desc: "Easily search across all transcripts to revisit decisions, questions, or references from any past meeting.",
+    },
+    {
+      icon: <MessageSquare className="w-8 h-8 text-yellow-400" />,
+      title: "Collaboration & Sharing",
+      desc: "Automatically share notes and next steps with teammates, making sure everyone stays aligned and informed.",
+    },
+    {
+      icon: <Folder className="w-8 h-8 text-pink-400" />,
+      title: "Knowledge Base Growth",
+      desc: "Build a rich, living database from your calls and chats for smarter onboarding, recommendations, and context.",
+    },
+  ];
+  return (
+    <section className="py-20 px-6 lg:px-16 bg-gradient-to-br from-violet-900/30 to-fuchsia-900/30">
+      <h2 className="text-3xl font-bold text-white mb-12 text-center">Use Cases</h2>
+      <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
+        {useCases.map((u, i) => (
+          <div
+            key={i}
+            className="rounded-2xl bg-white/5 border border-white/10 p-8 shadow-lg flex flex-col items-start hover:-translate-y-1 transition-transform"
+          >
+            {u.icon}
+            <h3 className="font-bold text-xl text-white mb-2">{u.title}</h3>
+            <p className="text-slate-300">{u.desc}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+
+
+
 function Features() {
   const features = [
     {
-      icon: <Sparkles className="w-8 h-8 text-violet-400" />,
       title: "AI-Powered Note-Taking",
       desc: "Automatically create clean, searchable transcripts from every session.",
+      image: "/features/ai-note-taking.png",
     },
     {
-      icon: <Folder className="w-8 h-8 text-fuchsia-400" />,
       title: "Organized With Folders",
       desc: "Structure and group materials intuitively for every workflow.",
+      image: "/features/folders.png",
     },
     {
-      icon: <LayoutDashboard className="w-8 h-8 text-cyan-400" />,
       title: "Multiple App Integrations",
       desc: (
         <>
           Effortlessly connect <span className="font-bold">Google Calendar</span>, <span className="font-bold">Sheets</span>, <span className="font-bold">Linear</span> and more.
         </>
       ),
+      image: "/features/integrations.png",
     },
     {
-      icon: <MessageSquare className="w-8 h-8 text-emerald-400" />,
       title: "Chat With Your Apps",
       desc: "Ask the chatbot for insights, and let it take actions for you.",
+      image: "/features/chatbot.png",
     },
     {
-      icon: <BookOpen className="w-8 h-8 text-yellow-400" />,
       title: "Real-Time Knowledge Base",
       desc: "Your database grows and updates automatically after every session.",
+      image: "/features/knowledge-base.png",
     },
   ];
+
+  const [current, setCurrent] = useState(0);
+
+  const handlePrev = () => {
+    setCurrent((prev) => (prev === 0 ? features.length - 1 : prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrent((prev) => (prev === features.length - 1 ? 0 : prev + 1));
+  };
+
   return (
     <section className="py-20 px-6 lg:px-16 relative overflow-x-hidden">
       <h2 className="text-3xl font-bold text-white mb-12 text-center">All-in-one Productivity With AI</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-        {features.map((f, i) => (
-          <div key={i} className="rounded-2xl bg-white/5 border border-white/10 p-8 flex flex-col items-start shadow-lg hover:scale-105 transition-transform">
-            <div className="mb-4">{f.icon}</div>
-            <h3 className="text-xl font-semibold text-white mb-2">{f.title}</h3>
-            <p className="text-slate-400 text-base">{f.desc}</p>
+      <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between bg-white/5 border border-white/10 rounded-3xl shadow-lg overflow-hidden">
+        {/* Left: title and desc (carousel controls left of content on mobile) */}
+        <div className="flex-1 flex flex-col items-start px-8 py-12 relative gap-6 min-w-[280px]">
+          <div className="mb-4 flex items-center gap-3">
+            <button
+              className="p-2 rounded-full bg-violet-800/30 hover:bg-violet-600/40 transition-colors text-white"
+              onClick={handlePrev}
+              aria-label="Previous Feature"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              className="p-2 rounded-full bg-violet-800/30 hover:bg-violet-600/40 transition-colors text-white"
+              onClick={handleNext}
+              aria-label="Next Feature"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
           </div>
-        ))}
+          <h3 className="text-2xl font-bold text-white mb-2">{features[current].title}</h3>
+          <p className="text-slate-400 text-base">{features[current].desc}</p>
+          <div className="flex gap-2 mt-6">
+            {features.map((_, idx) => (
+              <button
+                key={idx}
+                className={`w-3 h-3 rounded-full transition-colors border border-white/30 ${current === idx ? "bg-violet-400" : "bg-white/10"}`}
+                aria-label={`Go to feature ${idx + 1}`}
+                onClick={() => setCurrent(idx)}
+              />
+            ))}
+          </div>
+        </div>
+        {/* Right: image */}
+        <div className="flex-1 flex items-center justify-center px-10 py-12 bg-gradient-to-br from-violet-600/20 to-fuchsia-600/10">
+          <img
+            src={features[current].image}
+            alt={typeof features[current].title === "string" ? features[current].title : "Feature"}
+            className="rounded-2xl shadow-xl object-contain w-[320px] h-[240px] bg-slate-950 border border-white/10"
+            style={{ maxWidth: 400, maxHeight: 300 }}
+          />
+        </div>
       </div>
     </section>
   );
@@ -351,8 +452,10 @@ function Footer() {
 export default function LandingPage() {
   return (
     <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white min-h-screen">
+      <LandingNavbar/>
       <Hero />
       <Features />
+      <UseCases/>
       <KnowledgeBase />
       <Pricing />
       <Testimonials />

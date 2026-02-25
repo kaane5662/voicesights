@@ -82,7 +82,7 @@ const AIGenerate: React.FC<AIGenerateProps> = ({onClose, editor, sessionSummarie
         input,
         summaries: sessionSummaries
         // you may need to provide summaries/context; update as needed
-      });
+      },{withCredentials:true});
 
       // This assumes the API returns { result: "..." }
       let content = response.data.content

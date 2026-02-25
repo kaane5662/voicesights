@@ -14,6 +14,10 @@ import httpx
 import requests
 from dotenv import load_dotenv
 import asyncio
+# Use a MongoEngine transaction to ensure atomic deletes of related documents and the session
+from mongoengine import get_connection
+from mongoengine.context_managers import switch_db
+from models import SessionDoc, ChatSession
 
 from config.mongo import connect_to_mongo
 
@@ -21,6 +25,7 @@ from config.mongo import connect_to_mongo
 from schema import TranscriptPartitionModel
 from helpers.graphiti import add_graphiti_record
 from helpers.pinecone import add_pinecone_data, query_pinecone, query_pinecone_threshold
+from config.rate_limiter import limiter
 load_dotenv()
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
@@ -31,6 +36,7 @@ connect_to_mongo()
 
 @router.post("/")
 @login_required
+@limiter.limit("5/10minutes")
 async def create_session(
     request: Request = None,
     user_id: str = None
@@ -212,7 +218,7 @@ user_id: str = None
     '''
     )
     
-    await add_graphiti_record(summary.output_text, user_id)
+    # await add_graphiti_record(summary.output_text, user_id)
     session.summaries.append(summary.output_text)
     session.save()
 
@@ -357,7 +363,27 @@ async def search_transcripts(request:Request,user_id=None):
   
 
 @router.delete("/{session_id}")
-async def delete_session(session_id: str):
-    # Placeholder implementation
-    return {"message": f"Session {session_id} deleted"}
+@login_required
+async def delete_session(session_id: str, request:Request, user_id=None, ):
+    try:
+        session = Session.objects(id=session_id, owner_id=user_id).first()
+        if not session:
+            return JSONResponse(
+                content={"error": "Session not found"},
+                status_code=404,
+            )
+        
+
+        connection = get_connection()
+        with connection.start_session() as s:
+            with s.start_transaction():
+                SessionDoc.objects(session_id=session.id).delete()
+                ChatSession.objects(session_id=session.id).delete()
+                session.delete()
+        return {"message": f"Session {session_id} deleted"}
+    except Exception as e:
+        return JSONResponse(
+            content={"error": "Failed to delete session"},
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 

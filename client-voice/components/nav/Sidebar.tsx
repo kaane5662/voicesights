@@ -71,12 +71,12 @@ const sectionedNavItems: SectionNavItem[] = [
     icon: Folder,
     href: '/folders',
   },
-  {
-    id: 'knowledge',
-    label: 'Knowledge',
-    icon: Globe,
-    href: '/knowledge',
-  },
+  // {
+  //   id: 'knowledge',
+  //   label: 'Knowledge',
+  //   icon: Globe,
+  //   href: '/knowledge',
+  // },
   {
     id: 'workspace',
     label: 'Workspace',

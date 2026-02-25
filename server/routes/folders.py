@@ -15,6 +15,8 @@ from helpers.auth import login_required
 from models import ChatSession, Folder, Session, SessionDoc
 import asyncio
 
+from config.rate_limiter import limiter
+
 router = APIRouter(prefix="/folders", tags=["folders"])
 connect_to_mongo()
 
@@ -151,6 +153,7 @@ async def remove_from_folder(request: Request, user_id=None):
 
 
 @router.post("/")
+@limiter.limit("5/minute")
 @login_required
 async def create_folder(request: Request, user_id=None):
     """
