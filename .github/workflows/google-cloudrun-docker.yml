@@ -33,7 +33,7 @@ on:
 env:
   PROJECT_ID: 'voicesights'
   REGION: 'us-central1'
-  SERVICE: 'voicesights-api'
+  SERVICE: 'app'
   SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
   WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
