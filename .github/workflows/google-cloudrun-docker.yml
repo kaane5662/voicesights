@@ -40,7 +40,7 @@ on:
 env:
   PROJECT_ID: 'voicesights'
   REGION: 'us-central1'
-  SERVICE: 'voicesights-backend'
+  SERVICE: 'voicesights-api'
   SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
   WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }} 
 
@@ -98,7 +98,7 @@ jobs:
           region: '${{ env.REGION }}'
           # NOTE: If using a pre-built image, update the image name below:
 
-          image: '${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}/server:${{ github.sha }}'
+          image: '${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}/api:${{ github.sha }}'
           allow_unauthenticated: true
       # If required, use the Cloud Run URL output in later steps
       - name: 'Show output'
