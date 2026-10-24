@@ -128,6 +128,7 @@ async def login(user: LoginModel, request:Request):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     # Decrypt and check password match
     pw_payload = decode_jwt(profile.password)
+    print(pw_payload)
     print(user.password, pw_payload.get("pw"))
     if not pw_payload or pw_payload.get("pw") != user.password or pw_payload.get("email") != user.email:
         raise HTTPException(status_code=401, detail="Invalid email or password")

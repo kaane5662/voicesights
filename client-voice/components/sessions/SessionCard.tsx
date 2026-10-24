@@ -107,8 +107,14 @@ export default function SessionCard({ session, isSelected, onDelete }:{session: 
 
           <div className="flex items-start gap-2 p-3 rounded-xl bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 border border-violet-500/20 mb-3">
             <Sparkles className="w-4 h-4 text-violet-400 mt-0.5 shrink-0" />
-            <p className="text-sm text-slate-300 leading-relaxed">{session.ai_overview}</p>
+            <p className="text-sm text-slate-300 leading-relaxed">
+              {session.ai_overview
+                ? session.ai_overview
+                : <span className="italic text-slate-400">AI overview will be available after recording.</span>
+              }
+            </p>
           </div>
+     
 
           {/* <div className="flex items-center gap-2">
             {session.tags.map((tag:string) => (

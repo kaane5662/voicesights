@@ -1,6 +1,6 @@
 "use client"
 import { useState } from 'react';
-import { LayoutDashboard, Mic, AppWindow, Settings, LogOut, ChevronLeft, ChevronRight, Bell, Search, Moon, HelpCircle, Rocket, FileText, Sparkles, Edit, Folder, Globe } from 'lucide-react';
+import { LayoutDashboard, Mic, AppWindow, Settings, LogOut, ChevronLeft, ChevronRight, Bell, Search, Moon, HelpCircle, Rocket, FileText, Sparkles, Edit, Folder, Globe, Video } from 'lucide-react';
 import Link from 'next/link';
 import UpgradePopup from '../popups/SubscriptionPopup';
 import { SearchContentDropdown } from '../popups/SearchContent';
@@ -116,6 +116,12 @@ const sectionedNavItems: SectionNavItem[] = [
     label: 'Apps',
     icon: AppWindow,
     href: '/apps',
+  },
+  {
+    id: 'providers',
+    label: 'Providers',
+    icon: Video,
+    href: '/providers',
   },
   {
     id: 'settings',

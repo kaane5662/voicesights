@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from routes import sessions,integrations,chats,docs,profiles,stripe,webhooks,folders
+from routes.providers import router as providers_router
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -39,6 +40,7 @@ app.include_router(profiles.router)
 app.include_router(stripe.router)
 app.include_router(webhooks.router)
 app.include_router(folders.router)
+app.include_router(providers_router)
 
 @app.get("/")
 async def read_root():

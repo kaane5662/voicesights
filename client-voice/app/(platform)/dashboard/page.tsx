@@ -220,7 +220,7 @@ export default function Dashboard() {
       const data = res.data;
       console.log(data)
    
-      router.push(`/session/${data.session.id}/record`)
+      router.push(`/session/${data.session.id}/view`)
     } catch (error) {
       console.error("Error creating session:", error);
       return null;
@@ -286,9 +286,33 @@ export default function Dashboard() {
             </Link>
           </div>
           <div className="divide-y divide-white/5">
-            {recentSessions.map((session) => (
-              <SessionRow key={session.id} session={session} />
-            ))}
+            {recentSessions.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-white text-lg">
+                <label className='text-sm text-white/70 mb-4'>
+
+                No sessions found
+                </label>
+                <button
+                  onClick={createNewSession}
+                  disabled={creatingSession}
+                  className={`ml-2 flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white font-medium text-sm hover:opacity-90 transition-all shadow-lg shadow-violet-500/25 ${creatingSession ? 'opacity-60 cursor-not-allowed' : ''}`}
+                >
+                  {creatingSession ? (
+                    <Loader className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Plus className="w-4 h-4" />
+                  )}
+                  Create your first Session
+                </button>
+              </div>
+         
+         
+            ) : (
+              recentSessions.map((session) => (
+                <SessionRow key={session.id} session={session} />
+              ))
+            )}
+       
           </div>
         </div>
 
@@ -305,9 +329,16 @@ export default function Dashboard() {
               </Link>
             </div>
             <div className="p-2 space-y-1">
-              {recentNotes.map((note) => (
-                <NoteRow key={note.id} note={note} />
-              ))}
+              {recentNotes.length === 0 ? (
+                <label className="text-sm text-white/70 px-2 py-4 flex items-center justify-center w-full">
+                  No notes available
+                </label>
+              ) : (
+                recentNotes.map((note) => (
+                  <NoteRow key={note.id} note={note} />
+                ))
+              )}
+         
             </div>
           </div>
 
@@ -322,9 +353,16 @@ export default function Dashboard() {
               </Link>
             </div>
             <div className="p-2 space-y-1">
-              {recentChats.map((chat) => (
-                <ChatRow key={chat.id} chat={chat} />
-              ))}
+              {recentChats.length === 0 ? (
+                <label className="text-sm text-white/70 px-2 py-4 flex items-center justify-center w-full">
+                  No chats available
+                </label>
+              ) : (
+                recentChats.map((chat) => (
+                  <ChatRow key={chat.id} chat={chat} />
+                ))
+              )}
+         
             </div>
           </div>
         </div>

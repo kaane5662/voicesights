@@ -5,9 +5,21 @@ import { TranscriptEntry } from '@/components/sessions/TranscriptEntry';
 import axios from 'axios';
 import { useParams } from 'next/navigation';
 import { ChatBrowse } from '@/components/popups/ChatBrowse';
-import { AiSuggestion, ChatSession } from '@/app/interfaces';
+import { AiSuggestion, ChatMessage as ChatMessageType, ChatSession } from '@/app/interfaces';
 import { SERVER_URL } from '@/const';
 import { ChatsList } from './ChatsList';
+import {
+  AuthErrorView,
+  LinearTeamsView,
+  LinearIssuesView,
+  GoogleCalendarsView,
+  GoogleCalendarEventsView,
+  GoogleSheetRowsView,
+  SlackChannelsView,
+  SlackMessageView,
+  GraphitiSearchView,
+  TextContentView
+} from './ChatMessageViews';
 
 const presets = [
     { icon: Calendar, label: 'Add to Calendar', description: 'Create events from items', color: 'cyan' },
@@ -19,23 +31,58 @@ const presets = [
   ];
 
 
-function ChatMessage({ message }:{message:any}) {
+function ChatMessageItem({ message }:{message: ChatMessageType}) {
     const isUser = message.role === 'user';
-    
+    const msgType = message.type || 'text';
+
+    const renderContent = () => {
+      if (isUser) {
+        return <TextContentView content={message.content} />;
+      }
+
+      switch (msgType) {
+        case 'auth_error':
+          return <AuthErrorView data={message.data} message={message.content} />;
+        case 'linear_teams':
+          return <LinearTeamsView data={message.data} message={message.content} />;
+        case 'linear_issues':
+          return <LinearIssuesView data={message.data} message={message.content} />;
+        case 'google_calendars':
+          return <GoogleCalendarsView data={message.data} message={message.content} />;
+        case 'google_calendar_events':
+          return <GoogleCalendarEventsView data={message.data} message={message.content} />;
+        case 'google_sheet_rows':
+          return <GoogleSheetRowsView data={message.data} message={message.content} />;
+        case 'slack_channels':
+          return <SlackChannelsView data={message.data} message={message.content} />;
+        case 'slack_message':
+          return <SlackMessageView data={message.data} message={message.content} />;
+        case 'graphiti_search':
+          return <GraphitiSearchView data={message.data} message={message.content} />;
+        case 'text':
+        default:
+          return <TextContentView content={message.content} />;
+      }
+    };
+
     return (
       <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-        <div className={`max-w-[85%] p-3 rounded-2xl ${
+        <div className={`max-w-[90%] p-3 rounded-2xl ${
           isUser 
-            ? 'bg-violet-500/20 border border-violet-500/30 rounded-br-md' 
-            : 'bg-white/5 border border-white/10 rounded-bl-md'
+            ? 'bg-violet-500/20 border border-violet-500/30 rounded-br-md text-slate-100' 
+            : msgType === 'auth_error'
+              ? 'bg-transparent border-none p-0 w-full max-w-[95%]'
+              : msgType !== 'text'
+                ? 'bg-slate-900/90 border border-white/10 rounded-bl-md w-full max-w-[95%]'
+                : 'bg-white/5 border border-white/10 rounded-bl-md'
         }`}>
-          {!isUser && (
+          {!isUser && msgType === 'text' && (
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-3.5 h-3.5 text-violet-400" />
               <span className="text-xs font-medium text-violet-400">AI Assistant</span>
             </div>
           )}
-          <p className="text-sm text-slate-300 whitespace-pre-wrap">{message.content}</p>
+          {renderContent()}
         </div>
       </div>
     );
@@ -49,8 +96,8 @@ export default function Chatbar({sessionId, sessionSummaries, defaultChatId,sugg
     // const [chatId, setChatId] = useState<number>(undefined)
     const [chatSession,setChatSession] = useState<ChatSession |null>()
     const chatScrollRef = useRef<HTMLDivElement>(null)
-    const [messages, setMessages] = useState([
-        { id: 1, role: 'assistant', content: 'I\'ve analyzed this transcript. You discussed Q1 priorities, mobile app redesign, and resource allocation. How can I help you with this session?' }
+    const [messages, setMessages] = useState<ChatMessageType[]>([
+        { role: 'assistant', content: 'I\'ve analyzed this transcript. You discussed Q1 priorities, mobile app redesign, and resource allocation. How can I help you with this session?', type: 'text' }
     ]);
 
     useEffect(()=>{
@@ -59,16 +106,12 @@ export default function Chatbar({sessionId, sessionSummaries, defaultChatId,sugg
       }
     },[messages])
 
-    // INSERT_YOUR_CODE
     // Helper function to fetch chat messages for a session by id
     async function fetchSessionMessages(chatData:ChatSession) {
         try {
             const res = await axios.get(`${SERVER_URL}/chats/${sessionId}/${chatData.id}`,{withCredentials:true});
-         
-            
             setChatSession(res.data.chat)
-            console.log(res.data.chat)
-            setMessages(res.data.chat.messages)
+            setMessages(res.data.chat.messages || [])
             setChatOpen(false)
         } catch (error) {
             console.error('Error fetching session messages:', error);
@@ -84,16 +127,10 @@ export default function Chatbar({sessionId, sessionSummaries, defaultChatId,sugg
       if(chatInput.trim().length > 0)
         chatConversation()
     },[])
-    // INSERT_YOUR_CODE
+
     // Helper function to create a new chat session
-
-    
     async function createChatSession() {
-        
         try {
-
-            // setMessages(prev=>[...prev,{'content':chatInput, 'role':'user'} as any])
-            // setChatInput('')
             const response = await fetch(`${SERVER_URL}/chats/${sessionId}`, {
                 method: 'POST',
                 headers: {
@@ -107,9 +144,6 @@ export default function Chatbar({sessionId, sessionSummaries, defaultChatId,sugg
             if (!response.ok) throw new Error("Failed to create chat session");
             const data = await response.json();
             setChatSession(data.chat)
-            // INSERT_YOUR_CODE
-            // await new Promise(resolve => setTimeout(resolve, 500));
-            // chatConversation()
             return data.chat;
         } catch (error) {
             console.error('Error creating chat session:', error);
@@ -117,26 +151,24 @@ export default function Chatbar({sessionId, sessionSummaries, defaultChatId,sugg
         }
     }  
     
-    // INSERT_YOUR_CODE
     // Helper function to save (update) the current chat session with new messages
     async function chatConversation() {
+        if (!chatInput.trim()) return;
+        const currentInput = chatInput;
         try {
-
             setChatInput('')
             setIsTyping(true)
-            setMessages((prev)=>[...prev, {role:'user', content:chatInput} as any])
+            setMessages((prev)=>[...prev, {role:'user', content: currentInput, type: 'text'}])
             let created = false;
             let newChat = null
             if(!chatSession){
                 newChat = await createChatSession()
                 if(!newChat) return
                 created = true
-                // return chatConversation() 
             } 
             
-            
-            console.log(newChat)
-            const response = await fetch(`${SERVER_URL}/chats/${created? newChat.id:chatSession.id}/message`, {
+            const targetChatId = created ? newChat.id : chatSession?.id;
+            const response = await fetch(`${SERVER_URL}/chats/${targetChatId}/message`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -144,14 +176,15 @@ export default function Chatbar({sessionId, sessionSummaries, defaultChatId,sugg
                 credentials: 'include',
                 body: JSON.stringify({
                     messages: messages,
-                    new_message: {role:"user", content:chatInput},
-                    summaries: sessionSummaries
+                    new_message: {role: "user", content: currentInput, type: "text"},
+                    summaries: sessionSummaries || []
                 }),
             });
             if (!response.ok) throw new Error("Failed to save chat session messages");
             const data = await response.json();
-            // Optionally update the local chat session/messages here after successful save
-            setMessages(prev=>[...prev, data.message])
+            if (data?.message) {
+              setMessages(prev=>[...prev, data.message])
+            }
         } catch (error) {
             console.error('Error saving chat session:', error);
             return null;
@@ -166,21 +199,11 @@ export default function Chatbar({sessionId, sessionSummaries, defaultChatId,sugg
       setChatOpen(false)
     }
 
-
     const [isTyping, setIsTyping] = useState(false);
-    const chatEndRef = useRef(null);
+    const chatEndRef = useRef<HTMLDivElement>(null);
     return(
         <div className="w-full h-screen border-l border-white/10 flex flex-col relative z-10 bg-slate-900/50">
 
-            {/* {chatOpen &&(
-
-              <ChatBrowse
-                  sessionId={sessionId}
-                  onNewChat={resetChat}
-                  onSelectChat={fetchSessionMessages}
-                  onClose={()=>setChatOpen(false)}
-              />
-            )} */}
         <div className="p-5 border-b border-white/10">
           <div className="flex items-center gap-2 mb-3">
             <Zap className="w-4 h-4 text-violet-400" />
@@ -190,19 +213,15 @@ export default function Chatbar({sessionId, sessionSummaries, defaultChatId,sugg
               onClick={()=>setChatOpen(!chatOpen)}
               className="p-2 ml-auto rounded-xl bg-white/5 hover:bg-white/10 border border-white/10">
                 <History className="w-5 h-5 text-slate-400" />
-                
               </button>
               {chatOpen&&(
                 <ChatsList
-                sessionId={sessionId}
+                  sessionId={sessionId}
                   onNewChat={resetChat}
                   onSelectChat={fetchSessionMessages}
                   onClose={()=>setChatOpen(false)}
                 />
-
-                
               )}
-
             </div>
           </div>
           <div className="overflow-x-scroll [&::-webkit-scrollbar]:h-1 flex gap-2">
@@ -216,14 +235,13 @@ export default function Chatbar({sessionId, sessionSummaries, defaultChatId,sugg
               >
                 <Sparkles className=' text-emerald-300' size={15}/>  
                 <p>{suggestion.title || suggestion.prompt || `Suggestion ${i+1}`}</p>          
-                
               </button>
             ))}
           </div>
         </div>
 
         <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((msg,id) => <ChatMessage key={id} message={msg} />)}
+          {messages.map((msg, id) => <ChatMessageItem key={id} message={msg} />)}
           {isTyping && (
             <div className="flex items-center gap-2 text-slate-500 text-sm">
               <div className="flex gap-1">

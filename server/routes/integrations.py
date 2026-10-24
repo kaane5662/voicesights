@@ -71,25 +71,28 @@ async def google_oauth(input:TokenInput,request: Request = None,
             return JSONResponse(content={"message": "Disconnected Linear integration, revoked token, and invalidated session."})
         else:
             return JSONResponse(content={"error": "Linear integration not found."}, status_code=404)
-    flow = Flow.from_client_config(
-        {
-            "web": {
-                "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
-                "client_secret": os.environ.get('GOOGLE_CLIENT_SECRET'),
-                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                "token_uri":  "https://oauth2.googleapis.com/token",
-               
-            }
-        },
-        scopes=input.permissions,
-        state = json.dumps({'user_id': user_id, 'google_type': input.app_id}),
-        redirect_uri=os.environ.get("GOOGLE_REDIRECT_URI"),
-    )
+    try:
+        flow = Flow.from_client_config(
+            {
+                "web": {
+                    "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
+                    "client_secret": os.environ.get('GOOGLE_CLIENT_SECRET'),
+                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                    "token_uri":  "https://oauth2.googleapis.com/token",
+                }
+            },
+            scopes=input.permissions,
+            state=json.dumps({'user_id': user_id, 'google_type': input.app_id}),
+            redirect_uri=os.environ.get("GOOGLE_REDIRECT_URI"),
+        )
 
-    auth_url, state = flow.authorization_url(
-        access_type="offline",
-        prompt="consent",
-    )
+        auth_url, state = flow.authorization_url(
+            access_type="offline",
+            prompt="consent",
+        )
+    except Exception as exc:
+        print(exc)
+        return JSONResponse(content={"error": f"Google OAuth flow creation failed: {exc}"}, status_code=500)
     
     
 

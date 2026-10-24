@@ -28,9 +28,20 @@ function NoteRow({ note }: { note: Note }) {
             <FileText className="w-5 h-5 text-emerald-400" />
             </div>
             <div className="flex-1 min-w-0">
-            <h3 className="text-md font-medium text-white truncate">{note.title}</h3>
-            <p className="text-xs text-slate-500 truncate">{note.content_json[note.content_json.length-1]}</p>
+              <h3 className="text-md font-medium text-white truncate">{note.title}</h3>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-xs text-emerald-200 bg-emerald-800/20 px-1.5 py-0.5 rounded">
+                  {(note.session as any)?.title}
+                </span>
+                <span className="text-xs text-slate-500">
+                  {formatRelativeTime((note.session as any)?.created_at)}
+                </span>
+              </div>
+              <p className="text-sm text-slate-500 truncate">
+                {note.content_json && note.content_json.length > 0 ? note.content_json[note.content_json.length - 1] : ""}
+              </p>
             </div>
+       
             <span className="text-xs text-slate-600 shrink-0">{ formatRelativeTime(note.created_at as string)}</span>
         </Link>
       </div>

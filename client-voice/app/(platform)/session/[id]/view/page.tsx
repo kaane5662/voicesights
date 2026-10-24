@@ -158,11 +158,25 @@ export default function TranscriptDetail() {
             <button 
             onClick={()=>setOpenFolderExplorer(true)}
             className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10"><Folder className="w-5 h-5 text-slate-400" /></button>
-            <button className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10"><Share2 className="w-5 h-5 text-slate-400" /></button>
-            <button className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10"><Download className="w-5 h-5 text-slate-400" /></button>
+            {/* <button className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10"><Share2 className="w-5 h-5 text-slate-400" /></button>
+            <button className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10"><Download className="w-5 h-5 text-slate-400" /></button> */}
             <button 
             onClick={()=>setOpenRecord(!openRecord)}
             className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10"><Mic className="w-5 h-5 text-slate-400" /></button>
+            <button 
+              onClick={() => setActiveSidebar(activeSidebar === 'notes' ? null : 'notes')}
+              className={`p-2 rounded-xl border border-white/10 transition-colors ${activeSidebar === 'notes' ? 'bg-white/15 text-white' : 'bg-white/5 hover:bg-white/10 text-slate-400'}`}
+              title="Notes"
+            >
+              <NotebookIcon className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={() => setActiveSidebar(activeSidebar === 'chat' ? null : 'chat')}
+              className={`p-2 rounded-xl border border-white/10 transition-colors ${activeSidebar === 'chat' ? 'bg-white/15 text-white' : 'bg-white/5 hover:bg-white/10 text-slate-400'}`}
+              title="Chat"
+            >
+              <Sparkles className="w-5 h-5" />
+            </button>
           </div>
           {openRecord &&(
             <div className={` duration-300 border-t-2 border-white/10`}>
@@ -171,30 +185,14 @@ export default function TranscriptDetail() {
             </div>
 
           )}
-          <div className="flex items-center gap-4">
-            {/* <button onClick={() => setIsPlaying(!isPlaying)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-500/20 border border-violet-500/30 hover:bg-violet-500/30">
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              <span className="text-sm">{isPlaying ? 'Pause' : 'Play'}</span>
-            </button> */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search transcript..."
-                className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm placeholder-slate-500 focus:outline-none focus:border-violet-500/50"
-              />
-            </div>
-            <button 
-            onClick={() => setActiveSidebar(activeSidebar == 'notes' ? null : 'notes')}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-400">
-              <NotebookIcon className="w-4 h-4" /> Notes
-            </button>
-            <button 
-            onClick={() => setActiveSidebar(activeSidebar == 'chat' ? null : 'chat')}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-400">
-              <Sparkles className="w-4 h-4" /> Chat
-            </button>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search transcript..."
+              className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm placeholder-slate-500 focus:outline-none focus:border-violet-500/50"
+            />
           </div>
         </header>
 

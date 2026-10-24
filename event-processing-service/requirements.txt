@@ -1,0 +1,8 @@
+mongoengine==0.29.1
+pymongo==4.8.0
+kafka-python-ng==2.2.3
+requests==2.32.3
+httpx==0.28.1
+openai==1.51.2
+pydantic==2.12.5
+python-dotenv==1.2.1

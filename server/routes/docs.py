@@ -100,14 +100,28 @@ async def get_all_profile_docs(
 
     query = SessionDoc.objects(**query_obj).only("id", "title", "created_at", "session_id").order_by("-created_at")
     total = query.count()
-    docs = query.skip(skip).limit(page_size)
+
+    parsed_docs = []
+    for doc in query.skip(skip).limit(page_size):
+        doc_dict = doc.to_dict()
+        session = doc.session_id
+
+        if session:
+            doc_dict['session'] = {
+                'title': session.title,
+                'created_at': session.created_at,
+            }
+        else:
+            doc_dict['session'] = None
+        
+        parsed_docs.append(doc_dict)
     total_pages = (total + page_size - 1) // page_size if total > 0 else 1
-    print(docs)
+    print(parsed_docs)
     pagination.total = total
     pagination.total_pages = total_pages
 
     return {
-        'docs': [doc.to_dict() for doc in docs],
+        'docs': parsed_docs,
         'pagination': pagination.model_dump()
     }
 

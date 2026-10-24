@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Phone, PhoneOff, Volume2, VolumeX, Settings, MoreVertical, Sparkles, Waves, Loader2 } from 'lucide-react';
+import { Mic, MicOff, Phone, PhoneOff, Volume2, VolumeX, Settings, MoreVertical, Sparkles, Waves, Loader2, Play, Pause } from 'lucide-react';
 import { SERVER_URL } from '@/const';
 import axios from 'axios';
 import { useParams, useRouter } from 'next/navigation';
@@ -205,183 +205,91 @@ export default function SessionRecord({onTranscribed,session}:{onTranscribed:Cal
     }
   }
 
-  // INSERT_YOUR_CODE
-  // Helper function to fetch a session by id from the API using axios
-  // async function fetchSession() {
-  //   try {
-  //     setIsLoading(true)
-  //     const response = await axios.get(`${SERVER_URL}/sessions/${id}`);
-  //     console.log(response.data)
-  //     let session = response.data.session
-  //     setSession(session)
-      
-  //     setCallDuration(session.total_duration)
-  //     wordCountRef.current = session.word_count
-  //   } catch (error) {
-  //     console.error('Failed to fetch session:', error);
-  //     return null;
-  //   }finally{
-  //     setIsLoading(false)
-  //   }
-  // }
-
-  // useEffect(()=>{
-  //   fetchSession()
-  // },[])
-
-  // INSERT_YOUR_CODE
-  // if (isLoading) {
-  //   return (
-  //     <LoadingScreen loadingText='Loading session details ...'></LoadingScreen>
-  //   )
-  // }
 
 
 
   return (
-    <div className=" text-white flex flex-col">
-      {/* Ambient background */}
-      {/* <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-violet-600/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/3 left-1/2 -translate-x-1/2 w-96 h-96 bg-cyan-600/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-      </div> */}
+    <div className="flex flex-col mb-4 items-center justify-center w-full p-2 rounded-2xl bg-[#101C2F] shadow-lg text-white">
       <audio ref={audioElement}></audio>
-
-      
-
-      {/* Main content */}
-      <div className="relative z-10 flex-1 flex flex-col px-6">
-        {/* Avatar with audio visualization */}
-        <div className="relative mb-8">
-          {/* Outer rings */}
-          {isConnected && !isMuted && (
-            <>
-              <div className="absolute inset-0 -m-4 rounded-full border-2 border-violet-500/30 animate-ping" style={{ animationDuration: '2s' }} />
-              <div className="absolute inset-0 -m-8 rounded-full border border-violet-500/20 animate-ping" style={{ animationDuration: '2.5s' }} />
-              <div className="absolute inset-0 -m-12 rounded-full border border-violet-500/10 animate-ping" style={{ animationDuration: '3s' }} />
-            </>
-          )}
-          
-          {/* Glow effect */}
-          <div className={`absolute inset-0 -m-6 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 blur-2xl transition-opacity duration-500 ${
-            isConnected && !isMuted ? 'opacity-40' : 'opacity-10'
-          }`} />
-          
-          {/* Avatar */}
-          { /** <div className="relative w-32 h-32 rounded-full bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 p-1 shadow-2xl shadow-violet-500/30">
-            <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center">
-              <Waves className="w-12 h-12 text-violet-400" />
-            </div>
-          </div>
-          **/}
-          {/* Status badge */}
-          {/* <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-medium transition-all ${
-            isMuted 
-              ? 'bg-rose-500/20 border border-rose-500/40 text-rose-400' 
-              : 'bg-violet-500/20 border border-violet-500/40 text-violet-300'
-          }`}>
-            {isMuted ? 'Muted' : 'Speaking'}
-          </div> */}
-        </div>
-
-        {/* Title */}
-        <div className='flex w-full gap-8 justify-center'>
-
-            {/* <h1 className="text-md font-bold mb-2 bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-            {session?.title || "New Voice Session"}
-            </h1> */}
-            {/* <p className="text-slate-500 mb-8">{id}</p> */}
-
-            {/* Timer */}
-            <div className="flex items-center gap-3 px-2 py-1 rounded-2xl bg-white/5 border border-white/10">
-            <div className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
-            <span className="text-md font-mono font-light tracking-wider text-white/90">
-                {formatTime(callDuration)}
+      <div className="flex items-center w-full gap-4 px-2 py-2">
+        {/* Record/Stop Button and Session Status */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => !isConnected ? initSession() : finishSession()}
+            className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+              isConnected
+                ? 'bg-gradient-to-r from-rose-500 to-pink-600 shadow-lg shadow-rose-500/40'
+                : 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/40'
+            }`}
+            disabled={loading}
+          >
+            {loading ? (
+              <Loader2 className="w-6 h-6 animate-spin" />
+            ) : isConnected ? (
+              <Pause className="w-6 h-6 fill-white" />
+            ) : (
+              <Play className="w-6 h-6 fill-white" />
+            )}
+          </button>
+          <div className="flex flex-col leading-tight">
+            <span className="text-sm font-medium">
+              {isConnected ? "Recording..." : "Not recording"}
             </span>
-            </div>
+            <span className="text-xs text-slate-400 font-mono">
+              {formatTime(callDuration)}
+            </span>
+          </div>
         </div>
-        
 
-        <div className="flex items-center justify-center gap-1.5 h-16 ">
-        {audioLevels.map((level, i) => (
-            <div
-            key={i}
-            className="w-1.5 rounded-full bg-gradient-to-t from-violet-500 to-fuchsia-400 transition-all duration-150"
-            style={{
-                height: isConnected && !isMuted ? `${level * 100}%` : '20%',
-                opacity: isConnected && !isMuted ? 1 : 0.3
-            }}
-            />
-        ))}
+        {/* Audio Bars */}
+        <div className="flex-1 self-center flex items-center justify-center">
+          <div className="flex w-full justify-center gap-[2.5px] h-9">
+            {audioLevels.map((level, i) => (
+              <div
+                key={i}
+                className="w-[5px] rounded-full bg-gradient-to-t from-violet-500 to-fuchsia-400 transition-all duration-150"
+                style={{
+                  height: isConnected && !isMuted ? `${12 + 50 * level}px` : '18px',
+                  opacity: isConnected && !isMuted ? 1 : 0.3,
+                  marginLeft: i === 0 ? 0 : '2.5px'
+                }}
+              />
+            ))}
+          </div>
+    
         </div>
-        {/* Controls */}
-        <div className="relative z-10 p-6 pb-10">
-            {/* Connection quality */}
-            {/* <div className="flex justify-center mb-6">
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-                <div className="flex items-center gap-0.5">
-                {[...Array(4)].map((_, i) => (
-                    <div
-                    key={i}
-                    className="w-1 rounded-full bg-emerald-500"
-                    style={{ height: `${6 + i * 3}px` }}
-                    />
-                ))}
-                </div>
-                <span>Excellent</span>
-            </div>
-            </div> */}
 
-            {/* Control buttons */}
-            <div className="flex items-center justify-center gap-6">
+        {/* Right Options */}
+        <div className="flex items-center gap-4">
+          
+          {/* Controls Row */}
+          <div className="flex items-center justify-end gap-3 w-full mt-2 pr-2 pb-1">
             {/* Speaker */}
             <button
-                onClick={() => setIsSpeakerOn(!isSpeakerOn)}
-                className={`p-3 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 ${
+              onClick={() => setIsSpeakerOn(!isSpeakerOn)}
+              className={`p-3 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 ${
                 !isSpeakerOn
-                    ? 'bg-amber-500/20 border-2 border-amber-500/50 text-amber-400'
-                    : 'bg-white/10 border border-white/20 text-white hover:bg-white/15'
-                }`}
+                  ? 'bg-amber-500/20 border-2 border-amber-500/50 text-amber-400'
+                  : 'bg-white/10 border border-white/20 text-white hover:bg-white/15'
+              }`}
             >
-                {isSpeakerOn ? <Volume2 className=" w-5 h-5" /> : <VolumeX className=" w-5 h-5" />}
+              {isSpeakerOn ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
             </button>
-
-            {/* End/Start Call */}
-            <button
-                onClick={() => !isConnected ? initSession() : finishSession()}
-                className={`p-4 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 ${
-                isConnected
-                    ? 'bg-gradient-to-r from-rose-500 to-pink-600 shadow-lg shadow-rose-500/40'
-                    : 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/40'
-                }`}
-                disabled={loading}
-            >
-                {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-                ) : isConnected ? (
-                <PhoneOff className="w-5 h-5" />
-                ) : (
-                <Phone className="w-5 h-5" />
-                )}
-            </button>
-
             {/* Mute */}
             <button
-                onClick={() => setIsMuted(!isMuted)}
-                className={`p-3 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 ${
+              onClick={() => setIsMuted(!isMuted)}
+              className={`p-3 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 ${
                 isMuted
-                    ? 'bg-rose-500/20 border-2 border-rose-500/50 text-rose-400'
-                    : 'bg-white/10 border border-white/20 text-white hover:bg-white/15'
-                }`}
+                  ? 'bg-rose-500/20 border-2 border-rose-500/50 text-rose-400'
+                  : 'bg-white/10 border border-white/20 text-white hover:bg-white/15'
+              }`}
             >
-                {isMuted ? <MicOff className=" w-5 h-5" /> : <Mic className=" w-5 h-5" />}
+              {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
             </button>
-            </div>
+          </div>
         </div>
-        
-
-        </div>
-        {/* Audio visualizer */}
+      </div>
+      
     </div>
   );
 }
