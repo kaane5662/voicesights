@@ -89,7 +89,7 @@ jobs:
         with:
           service: '${{ env.SERVICE }}'
           region: '${{ env.REGION }}'
-          image: '${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.env.REGISTRY_TAG }}/api:${{ github.sha }}'
+          image: '${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REGISTRY_TAG }}/api:${{ github.sha }}'
           allow_unauthenticated: true
 
       - name: 'Show output'
