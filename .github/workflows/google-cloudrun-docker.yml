@@ -84,7 +84,7 @@ jobs:
       
       - name: 'Build and Push Container'
         run: |
-          DOCKER_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}/server:${{ github.sha }}"
+          DOCKER_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}/api:${{ github.sha }}"
           echo "Docker Tag: $DOCKER_TAG"
           docker build --tag "$DOCKER_TAG" ./server
           docker push "$DOCKER_TAG"

@@ -15,4 +15,4 @@ EXPOSE 8000
 # By default, start the API. 
 # To run Celery, override the CMD in your runtime environment, e.g.:
 # docker run ... celery -A app.celery worker --loglevel=info
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "info"]

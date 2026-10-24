@@ -35,7 +35,9 @@ def dispatch_celery_task(task_func, *args, **kwargs):
     Safely enqueues a Celery task with automatic background thread fallback
     if the Celery broker (e.g. Redis) is unavailable or encounters connection errors.
     """
+    logger.info("yo what is this thing doing")
     try:
+        logger.info("Found a worker pool to add the tasks to")
         return task_func.delay(*args, **kwargs)
     except Exception as exc:
         logger.warning(f"Celery broker unavailable ({exc}). Running {task_func.__name__} in background thread fallback.")
