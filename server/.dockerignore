@@ -3,3 +3,4 @@
 Pipfile
 voicevenv
 Pipfile
+terraform.tfvars

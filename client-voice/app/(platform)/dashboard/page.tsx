@@ -97,7 +97,7 @@ function SessionRow({ session }: { session: Session }) {
         <Play className="w-4 h-4 text-violet-400" />
       </div>
       <Link
-      href={session.finished ? `/session/${session.id}/view` : `/session/${session.id}/record`}
+      href={`/session/${session.id}/view`}
        className="flex-1 min-w-0">
         <h3 className="font-medium text-white truncate group-hover:text-violet-300 transition-colors">{session.title}</h3>
         <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">

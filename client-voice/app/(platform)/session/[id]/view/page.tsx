@@ -1,6 +1,6 @@
 "use client"
 import { useState, useRef, useEffect, act } from 'react';
-import { ArrowLeft, Play, Pause, Clock, Calendar, MessageSquare, Sparkles, Send, CheckSquare, FileText, ListTodo, Mail, Share2, Download, MoreHorizontal, Search, Bookmark, Zap, Brain, Mic, History, NotebookIcon, Folder } from 'lucide-react';
+import { ArrowLeft, Play, Pause, Clock, Calendar, MessageSquare, Sparkles, Send, CheckSquare, FileText, ListTodo, Mail, Share2, Download, MoreHorizontal, Search, Bookmark, Zap, Brain, Mic, History, NotebookIcon, Folder, Loader2 } from 'lucide-react';
 import { TranscriptEntry } from '@/components/sessions/TranscriptEntry';
 import axios from 'axios';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -104,6 +104,28 @@ export default function TranscriptDetail() {
   useEffect(()=>{
     fetchSession()
   },[])
+
+  // Poll for background AI updates when session is processing
+  useEffect(() => {
+    if (session?.status === 'processing') {
+      const pollTimer = setInterval(async () => {
+        try {
+          const response = await axios.get(`${SERVER_URL}/sessions/${id}`);
+          const updatedSession = response.data.session;
+          if (updatedSession) {
+            setSession(updatedSession);
+            if (updatedSession.transcript) setTranscript(updatedSession.transcript);
+            if (updatedSession.status !== 'processing') {
+              clearInterval(pollTimer);
+            }
+          }
+        } catch (e) {
+          console.error("Polling session error:", e);
+        }
+      }, 3000);
+      return () => clearInterval(pollTimer);
+    }
+  }, [session?.status, id]);
   
 
   if (isLoading) {
@@ -148,7 +170,15 @@ export default function TranscriptDetail() {
               <ArrowLeft className="w-5 h-5 text-slate-400" />
             </button>
             <div className="flex-1">
-              <h1 className="text-xl font-bold">{session.title}</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-xl font-bold">{session.title}</h1>
+                {session.status === 'processing' && (
+                  <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 border border-amber-500/30 text-amber-400">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <span>Processing AI Insights</span>
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-4 mt-1 text-sm text-slate-500">
                 <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{formatDate(session.created_at)}</span>
                 <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{formatDuration(session.total_duration)}</span>
@@ -158,8 +188,8 @@ export default function TranscriptDetail() {
             <button 
             onClick={()=>setOpenFolderExplorer(true)}
             className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10"><Folder className="w-5 h-5 text-slate-400" /></button>
-            {/* <button className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10"><Share2 className="w-5 h-5 text-slate-400" /></button>
-            <button className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10"><Download className="w-5 h-5 text-slate-400" /></button> */}
+            <button className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10"><Share2 className="w-5 h-5 text-slate-400" /></button>
+            <button className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10"><Download className="w-5 h-5 text-slate-400" /></button>
             <button 
             onClick={()=>setOpenRecord(!openRecord)}
             className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10"><Mic className="w-5 h-5 text-slate-400" /></button>
@@ -181,7 +211,7 @@ export default function TranscriptDetail() {
           {openRecord &&(
             <div className={` duration-300 border-t-2 border-white/10`}>
 
-            <SessionRecord session={session} onTranscribed={(obj:any)=>setTranscript(prev=>[...prev,obj])}/>
+            <SessionRecord session={session} flushIntervalSeconds={45} onTranscribed={(obj:any)=>setTranscript(prev=>[...prev,obj])}/>
             </div>
 
           )}

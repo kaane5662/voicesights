@@ -25,6 +25,7 @@ export interface Session {
   speakers: string[];
   starred: boolean;
   finished: boolean;
+  status?: 'active' | 'processing' | 'completed' | 'failed' | string;
   tags: string[];
   ai_overview?: string;
   summaries?: string[];

@@ -151,6 +151,7 @@ class Session(Document):
     speakers = ListField()
     starred = BooleanField(default=False)
     finished = BooleanField(default=False)
+    status = StringField(default="active") # active, processing, completed, failed
     tags = ListField(StringField())
     ai_overview = StringField()
     summaries = ListField(StringField())

@@ -1,0 +1,14 @@
+# Use the official Python image (choose non-slim for most dependencies)
+FROM python:3.12
+
+WORKDIR /app
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the application code
+COPY . .
+
+# Set the default command to run the celery worker
+CMD ["celery", "-A", "tasks", "worker", "--loglevel=info"]
