@@ -238,6 +238,22 @@ class InputText(BaseModel):
     new_message: Message
     summaries: List[str]
 
+model = ChatOpenAI(
+            api_key=os.environ.get('OPENAI_API_KEY'),
+            model='gpt-5-nano'
+        )
+agent = create_agent(
+    model=model,
+    tools=[
+        get_google_calendars,
+        get_linear_teams,
+        create_linear_issues,
+        add_google_calendar_events_rest,
+        append_rows_to_google_sheet,
+        slack_list_channels,
+        slack_post_message
+    ]
+)
 
 @router.post("/{chat_id}/message")
 @login_required
@@ -259,29 +275,14 @@ async def create_conversation_with_tools(
         Summaries:{chr(10).join(body.summaries)}
         '''
 
-        model = ChatOpenAI(
-            api_key=os.environ.get('OPENAI_API_KEY'),
-            model='gpt-3.5-turbo'
-        )
-        agent = create_agent(
-            model=model,
-            tools=[
-                get_google_calendars,
-                get_linear_teams,
-                create_linear_issues,
-                add_google_calendar_events_rest,
-                append_rows_to_google_sheet,
-                slack_list_channels,
-                slack_post_message
-            ]
-        )
+        
 
         lc_messages = [{'role': "system", 'content': init_prompt}]
         for m in body.messages:
             lc_messages.append({'role': m.role, 'content': m.content})
         lc_messages.append({'role': body.new_message.role, 'content': body.new_message.content})
 
-        result = agent.invoke({
+        result = await agent.ainvoke({
             "messages": lc_messages,
             "user_preferences": {"style": "technical", "verbosity": "detailed"},
         }, config=RunnableConfig(configurable={"user_id": user_id}))
